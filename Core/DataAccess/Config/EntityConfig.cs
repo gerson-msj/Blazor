@@ -1,4 +1,3 @@
-using System;
 using Blazor.Core.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -7,6 +6,12 @@ namespace Blazor.Core.DataAccess.Config;
 
 public class LivroConfig : IEntityTypeConfiguration<LivroEntity>
 {
+    private const string titulo = nameof(LivroEntity.Titulo);
+    private const string idAutor = "IdAutor";
+    private const string idSerie = "IdSerie";
+    private const string ordem = nameof(LivroEntity.Ordem);
+    private const string ixLivroUnico = "IX_Livros_Unique";
+
     public void Configure(EntityTypeBuilder<LivroEntity> builder)
     {
         builder.ToTable("Livros");
@@ -16,23 +21,17 @@ public class LivroConfig : IEntityTypeConfiguration<LivroEntity>
 
         builder
             .HasOne(e => e.Autor)
-            .WithOne()
-            .HasForeignKey<LivroEntity>("IdAutor")
-            .IsRequired();
+                .WithOne()
+                .HasForeignKey<LivroEntity>(idAutor)
+                .IsRequired();
 
         builder
             .HasOne(e => e.Serie)
-            .WithOne()
-            .HasForeignKey<LivroEntity>("IdSerie")
-            .IsRequired(false);
+                .WithOne()
+                .HasForeignKey<LivroEntity>(idSerie)
+                .IsRequired(false);
 
-        builder.HasIndex(e => new
-        {
-            e.Titulo,
-            e.Autor,
-            e.Serie,
-            e.Ordem
-        }).IsUnique();
+        builder.HasIndex([titulo, idAutor, idSerie, ordem], ixLivroUnico).IsUnique();
     }
 }
 

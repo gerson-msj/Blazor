@@ -13,6 +13,7 @@ DependencyInjection.Config(builder.Services);
 var app = builder.Build();
 
 // Somente em testes, para garantir a criação do banco.
+/*
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -20,6 +21,7 @@ using (var scope = app.Services.CreateScope())
     await using var db = await fac.CreateDbContextAsync();
     await db.Database.EnsureCreatedAsync();
 }
+*/
 
 app.MapGet("/", () => "Hello World!");
 
