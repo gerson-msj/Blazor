@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build: Server (Debug)",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "Server/Blazor.Server.csproj",
+        "-c",
+        "Debug",
+        "--property:SolutionName=Server"
+      ],
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: Api (Debug)",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "Api/Blazor.Api.csproj",
+        "-c",
+        "Debug",
+        "--property:SolutionName=Api"
+      ],
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch: Server",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "--project",
+        "Server/Blazor.Server.csproj",
+        "--property:SolutionName=Server"
+      ],
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "watch: Api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "--project",
+        "Api/Blazor.Api.csproj",
+        "--property:SolutionName=Api"
+      ],
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "watch: Server + Api",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "watch: Server",
+        "watch: Api"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

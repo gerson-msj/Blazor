@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="Core/Blazor.Core.csproj" />
+  </Folder>
+  <Folder Name="/Server/">
+    <Project Path="Server/Blazor.Server.csproj" />
+  </Folder>
+</Solution>

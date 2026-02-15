@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup Condition="'$(SolutionName)' != ''">
+    <BaseOutputPath>$(MSBuildThisFileDirectory)bin\$(SolutionName)\$(MSBuildProjectName)\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(SolutionName)\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

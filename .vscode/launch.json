@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug: Server",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Server (Debug)",
+      "program": "${workspaceFolder}/Server/bin/Debug/net10.0/Blazor.Server.dll",
+      "cwd": "${workspaceFolder}/Server",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7145;http://localhost:5041"
+      }
+    },
+    {
+      "name": "Debug: Api",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Api (Debug)",
+      "program": "${workspaceFolder}/Api/bin/Debug/net10.0/Blazor.Api.dll",
+      "cwd": "${workspaceFolder}/Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7146;http://localhost:5163"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug: Server + Api",
+      "configurations": [
+        "Debug: Server",
+        "Debug: Api"
+      ]
+    }
+  ]
+}
