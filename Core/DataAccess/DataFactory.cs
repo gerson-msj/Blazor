@@ -12,4 +12,20 @@ public sealed class DataFactory(IDbContextFactory<DataContext> contextFactory)
             livroRepository: new(dataContext)
         );
     }
+
+    public async Task<TResult> ExecuteAsync<TResult>(
+        Func<Uow, Task<TResult>> operation,
+        CancellationToken ct = default)
+    {
+        await using Uow uow = await CreateUowAsync(ct);
+        return await operation(uow);
+    }
+
+    public async Task ExecuteAsync(
+        Func<Uow, Task> operation,
+        CancellationToken ct = default)
+    {
+        await using Uow uow = await CreateUowAsync(ct);
+        await operation(uow);
+    }
 }

@@ -1,7 +1,6 @@
 using Blazor.Core.DataAccess;
 using Blazor.Core.Domain.Config;
 using Blazor.Core.IoC;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +10,15 @@ builder.Services
 DependencyInjection.Config(builder.Services);
 
 var app = builder.Build();
+
+/*
+Livros
+Get
+Get/{Id}
+Post
+Put
+Delete
+*/
 
 // Somente em testes, para garantir a criação do banco.
 /*
