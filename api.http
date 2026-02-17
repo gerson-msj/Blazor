@@ -1,0 +1,21 @@
+### 
+POST http://localhost:5163/livros
+Content-Type: application/json
+
+{
+    "id": 0,
+    "titulo": "Encontro com Rama",
+    "autor": {
+        "id": 1,
+        "nome": "Arthur C. Clarke"
+    },
+    "Serie": {
+        "id": 0,
+        "nome": "Rama"
+    },
+    "Ordem": 1
+}
+
+###
+
+GET http://localhost:5163/livros

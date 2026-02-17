@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Blazor.Core.Domain.Entity;
 
 namespace Blazor.Core.Domain.Dto;
@@ -5,14 +6,12 @@ namespace Blazor.Core.Domain.Dto;
 public class LivroDto
 {
     public int Id { get; set; }
+
+    [Required]
+    [MaxLength(2, ErrorMessage = "Não pode!!!")]
     public string Titulo { get; set; } = string.Empty;
-
-    public int IdAutor { get; set; }
-    public string NomeAutor { get; set; } = string.Empty;
-
-    public int? IdSerie { get; set; }
-    public string? NomeSerie { get; set; }
-
+    public AutorDto Autor {get;set;} = null!;
+    public SerieDto? Serie { get; set; }
     public int? Ordem { get; set; }
     public DateOnly? DataConclusao { get; set; }
     public string? Comentarios { get; set; }
@@ -23,10 +22,11 @@ public class LivroDto
     {
         Id = entity.Id;
         Titulo = entity.Titulo;
-        IdAutor = entity.Autor.Id;
-        NomeAutor = entity.Autor.Nome;
-        IdSerie = entity.Serie?.Id;
-        NomeSerie = entity.Serie?.Nome;
+        Autor = new(entity.Autor);
+        
+        if(entity.Serie is not null)
+            Serie = new(entity.Serie);
+
         Ordem = entity.Ordem;
         DataConclusao = entity.DataConclusao;
         Comentarios = entity.Comentarios;
@@ -37,18 +37,18 @@ public class LivroDto
         entity.Titulo = Titulo;
 
         entity.Autor ??= new AutorEntity();
-        entity.Autor.Id = IdAutor;
-        entity.Autor.Nome = NomeAutor;
+        entity.Autor.Id = Autor.Id;
+        entity.Autor.Nome = Autor.Nome;
 
-        if (IdSerie is null)
+        if (Serie is null)
         {
             entity.Serie = null;
         }
         else
         {
             entity.Serie ??= new SerieEntity();
-            entity.Serie.Id = IdSerie.Value;
-            entity.Serie.Nome = NomeSerie ?? string.Empty;
+            entity.Serie.Id = Serie.Id;
+            entity.Serie.Nome = Serie.Nome;
         }
 
         entity.Ordem = Ordem;

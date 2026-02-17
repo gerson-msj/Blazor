@@ -16,7 +16,7 @@ public static class DependencyInjection
             var config = sp.GetRequiredService<IOptions<SqliteConfig>>().Value;
             options.UseSqlite(config.ConnectionString);
         });
-        services.AddDatabaseDeveloperPageExceptionFilter();
+        // services.AddDatabaseDeveloperPageExceptionFilter();
 
         return services
             .AddScoped<DataFactory>()
