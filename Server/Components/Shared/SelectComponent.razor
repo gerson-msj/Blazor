@@ -1,0 +1,118 @@
+@implements IDisposable
+@inject ILogger<SelectComponent> Logger
+
+<div class="input-group">
+    <input type="text" class="form-control" disabled @bind="name" />
+    <button type="button" class="btn btn-outline-secondary" @onclick="() => show = true">
+        Selecionar
+    </button>
+</div>
+
+<Popup @bind-Show="show">
+    <div class="input-group">
+        <input type="text" class="form-control" @bind="popName" @bind:event="oninput" @bind:after="OnInputDebounce" />
+        <button type="button" class="btn btn-outline-secondary" @onclick="OnClear">
+            x
+        </button>
+    </div>
+    <div class="list-group mt-2 overflow-auto" style="height: 165px">
+        @foreach (Item item in FilteredItemList)
+        {
+            <button type="button" class="list-group-item list-group-item-action" @onclick="() => OnSelect(item)">
+                @item.Name
+            </button>
+        }
+    </div>
+</Popup>
+
+@code {
+    public record Item(int? Id, string Name);
+
+    [Parameter] public Item? ItemSelected { get; set; }
+    [Parameter] public EventCallback<Item?> ItemSelectedChanged { get; set; }
+    [Parameter] public IEnumerable<Item> ItemList { get; set; } = [];
+
+    private string name = "";
+    private string popName = "";
+    private bool show;
+    private List<Item> FilteredItemList = [];
+
+    private CancellationTokenSource? debCts;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        name = ItemSelected?.Name ?? "";
+        popName = name;
+        OnInput(name);
+    }
+
+    private async Task OnInputDebounce()
+    {
+        DebCtsDispose();
+        debCts = new();
+        var token = debCts.Token;
+        try
+        {
+            await Task.Delay(250, token);
+            OnInput(popName);
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private void OnInput(string name)
+    {
+        var filter = name.Trim();
+        if (string.IsNullOrWhiteSpace(filter))
+        {
+            FilteredItemList.Clear();
+            FilteredItemList.AddRange(ItemList);
+            return;
+        }
+
+        var filtered = ItemList.Where(i => i.Name.Contains(filter, StringComparison.OrdinalIgnoreCase));
+        FilteredItemList.Clear();
+        if (filtered.Any())
+        {
+            FilteredItemList.AddRange(filtered);
+        }
+        else
+        {
+            FilteredItemList.Add(new(null, filter));
+        }
+    }
+
+    private void OnClear()
+    {
+        popName = "";
+        OnInput("");
+        DebCtsDispose();
+    }
+
+    private async Task OnSelect(Item item)
+    {
+        await ItemSelectedChanged.InvokeAsync(item);
+        show = false;
+        name = item.Name;
+    }
+
+    public void Dispose()
+    {
+        DebCtsDispose();
+
+        // Importante! Evita execução no pre-render!!!!
+        if (!RendererInfo.IsInteractive)
+            return;
+
+        Logger.LogInformation("Debounce Disposed!");
+    }
+
+    private void DebCtsDispose()
+    {
+        debCts?.Cancel();
+        debCts?.Dispose();
+        debCts = null;
+    }
+}

@@ -1,22 +1,27 @@
 ﻿@page "/"
-@using Blazor.Core.Domain.Dto
 @using Blazor.Server.Components.Shared
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<Popup Titulo="Popup" @bind-Show="showPopup">
-    <AutorComponent />
-</Popup>
+<SelectComponent @bind-ItemSelected="autor" ItemList="valueList" />
 
-<p>
-    Situação do Popup: @(showPopup ? "Visivel" : "Oculto")
-</p>
-
-<button @onclick="() => showPopup = true">
-    Exibir
-</button>
+<p>Id: @(autor?.Id ?? 0)</p>
+<p>Autor: @(autor?.Name ?? "Autor Desconhecido")</p>
 
 @code {
-    private bool showPopup = true;
+    private SelectComponent.Item? autor;
+
+    private List<SelectComponent.Item> valueList = [];
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        valueList = [
+            new(1, "Ana"),
+            new(2, "Beto"),
+            new(3, "Carla"),
+            new(4, "Denis")
+        ];
+    }
 }
