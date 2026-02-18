@@ -1,0 +1,40 @@
+<div 
+    class="backdrop"
+    @onclick="ClosePopup"
+    style="@backdropStyle"
+    >
+    <div 
+        class="box"
+        style="@boxStyle"
+        @onclick:stopPropagation="true"
+        >
+        @if (!string.IsNullOrWhiteSpace(Titulo))
+        {
+            <div class="titulo">
+                @Titulo
+            </div>
+        }
+        <div class="conteudo">
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Titulo { get; set; }
+    [Parameter] public int Width { get; set; } = 400;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+    [Parameter] public bool DisableBackdrop { get; set; }
+
+    private string backdropStyle =>
+        $"{(DisableBackdrop ? "" : "cursor: pointer;")} {(Show ? "opacity: 1; visibility: visible; pointer-events: auto;" : "opacity: 0; visibility: hidden; pointer-events: none;")}";
+    private string boxStyle =>
+        $"width: {Width}px; {(Show ? "opacity: 1; transform: translateY(0) scale(1);" : "opacity: 0; transform: translateY(6px) scale(0.98);")}";
+
+    private async Task ClosePopup(){
+        if(!DisableBackdrop && Show)
+            await ShowChanged.InvokeAsync(false);
+    }
+}

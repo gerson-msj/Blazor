@@ -1,3 +1,5 @@
+using Blazor.Core.Domain.Config;
+using Blazor.Core.IoC;
 using Blazor.Server.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services
+    .Configure<SqliteConfig>(builder.Configuration.GetSection(nameof(SqliteConfig)));
+
+DependencyInjection.Config(builder.Services);
 
 var app = builder.Build();
 

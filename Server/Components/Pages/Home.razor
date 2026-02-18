@@ -1,7 +1,22 @@
 ﻿@page "/"
+@using Blazor.Core.Domain.Dto
+@using Blazor.Server.Components.Shared
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<Popup Titulo="Popup" @bind-Show="showPopup">
+    <AutorComponent />
+</Popup>
 
-Welcome to your new app.
+<p>
+    Situação do Popup: @(showPopup ? "Visivel" : "Oculto")
+</p>
+
+<button @onclick="() => showPopup = true">
+    Exibir
+</button>
+
+@code {
+    private bool showPopup = true;
+}

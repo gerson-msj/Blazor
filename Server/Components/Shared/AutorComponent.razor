@@ -1,0 +1,17 @@
+﻿<h3>AutorComponent</h3>
+@* para bind complexo, usar tipo imutavel, record.
+
+public sealed record OptionItem
+{
+    public int? Id { get; init; }
+    public string Nome { get; init; } = string.Empty;
+}
+
+ou 
+
+public sealed record OptionItem(int? Id, string Nome);
+
+ *@
+@code {
+
+}
