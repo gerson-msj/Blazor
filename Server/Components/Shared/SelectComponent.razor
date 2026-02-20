@@ -1,8 +1,11 @@
+@using Blazor.Server.Models
+@using System.Diagnostics.CodeAnalysis
 @implements IDisposable
+@inherits InputBase<SelectItemModel>
 @inject ILogger<SelectComponent> Logger
 
-<div class="input-group">
-    <input type="text" class="form-control" disabled @bind="name" />
+<div class="input-group @CssClass">
+    <input type="text" class="form-control" disabled value="@item.Name" />
     <button type="button" class="btn btn-outline-secondary" @onclick="OpenPopup">
         Selecionar
     </button>
@@ -10,15 +13,15 @@
 
 <Popup @bind-Show="show">
     <div class="input-group">
-        <input type="text" class="form-control" @bind="popName" @bind:event="oninput" @bind:after="OnInputDebounce" />
-        <button type="button" class="btn btn-outline-secondary" @onclick="OnClear">
+        <input type="text" class="form-control" @bind="name" @bind:event="oninput" @bind:after="HandleInputDebounce" />
+        <button type="button" class="btn btn-outline-secondary" @onclick="ClearName">
             x
         </button>
     </div>
     <div class="list-group mt-2 overflow-auto" style="height: 165px">
-        @foreach (Item item in FilteredItemList)
+        @foreach (var item in filteredItens)
         {
-            <button type="button" class="list-group-item list-group-item-action" @onclick="() => OnSelect(item)">
+            <button type="button" class="list-group-item list-group-item-action" @onclick="() => HandleSelect(item)">
                 @item.Name
             </button>
         }
@@ -26,28 +29,44 @@
 </Popup>
 
 @code {
-    public record Item(int? Id, string Name);
+    [Parameter] public List<SelectItemModel> Itens { get; set; } = [];
+    private List<SelectItemModel> filteredItens = [];
 
-    [Parameter] public Item? ItemSelected { get; set; }
-    [Parameter] public EventCallback<Item?> ItemSelectedChanged { get; set; }
-    [Parameter] public IEnumerable<Item> ItemList { get; set; } = [];
-
-    private string name = "";
-    private string popName = "";
+    private SelectItemModel item = new(0, string.Empty);
+    private string name = string.Empty;
+    private ValidationMessageStore? messageStore;
     private bool show;
-    private List<Item> FilteredItemList = [];
+
+    protected override bool TryParseValueFromString(
+            string? value,
+            [MaybeNullWhen(false)] out SelectItemModel result,
+            [NotNullWhen(false)] out string validationErrorMessage)
+    {
+        result = CurrentValue!;
+        validationErrorMessage = string.Empty;
+        return true;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (CurrentValue is not null)
+        {
+            item = new(CurrentValue.Id, CurrentValue.Name);
+        }
+    }
 
     private CancellationTokenSource? debCts;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        name = ItemSelected?.Name ?? "";
-        popName = name;
-        OnInput(name);
+        HandleInput(string.Empty);
     }
 
-    private async Task OnInputDebounce()
+
+
+    private async Task HandleInputDebounce()
     {
         DebCtsDispose();
         debCts = new();
@@ -55,47 +74,58 @@
         try
         {
             await Task.Delay(250, token);
-            OnInput(popName);
+            HandleInput(name);
         }
         catch (TaskCanceledException)
         {
         }
     }
 
-    private void OnInput(string name)
+    private void HandleInput(string name)
     {
         var filter = name.Trim();
         if (string.IsNullOrWhiteSpace(filter))
         {
-            FilteredItemList.Clear();
-            FilteredItemList.AddRange(ItemList);
+            filteredItens.Clear();
+            filteredItens.AddRange(Itens);
             return;
         }
 
-        var filtered = ItemList.Where(i => i.Name.Contains(filter, StringComparison.OrdinalIgnoreCase));
-        FilteredItemList.Clear();
+        var filtered = Itens.Where(i => i.Name.Contains(filter, StringComparison.OrdinalIgnoreCase));
+        filteredItens.Clear();
         if (filtered.Any())
         {
-            FilteredItemList.AddRange(filtered);
+            filteredItens.AddRange(filtered);
         }
         else
         {
-            FilteredItemList.Add(new(null, filter));
+            filteredItens.Add(new(0, filter));
         }
     }
 
-    private void OnClear()
+    private void ClearName()
     {
-        popName = "";
-        OnInput("");
+        name = string.Empty;
+        HandleInput(name);
         DebCtsDispose();
     }
 
-    private async Task OnSelect(Item item)
+    private async Task HandleSelect(SelectItemModel item)
     {
-        await ItemSelectedChanged.InvokeAsync(item);
+        messageStore ??= new(EditContext);
+        messageStore.Clear(FieldIdentifier);
+
         show = false;
         name = item.Name;
+        CurrentValue = item;
+
+        if (name.Length <= 1)
+        {
+            messageStore.Add(FieldIdentifier, "O nome informado é inválido.");
+        }
+
+        EditContext.NotifyFieldChanged(FieldIdentifier);
+        EditContext.NotifyValidationStateChanged();
     }
 
     public void Dispose()
@@ -117,7 +147,7 @@
     }
     private void OpenPopup(MouseEventArgs args)
     {
-        OnClear();
+        ClearName();
         show = true;
     }
 }

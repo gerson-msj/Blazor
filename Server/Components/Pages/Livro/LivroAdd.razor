@@ -1,0 +1,42 @@
+﻿@page "/livros/add"
+@inject ILogger<LivroAdd> Logger
+@rendermode InteractiveServer
+
+@using Blazor.Core.Domain.Dto
+@using Blazor.Server.Components.Shared
+@using Blazor.Server.Models
+
+<h3>Add</h3>
+
+<EditForm FormName="livro_add" Model="model" OnValidSubmit="HandleSubmit">
+    <ValidationSummary />
+
+    <SelectComponent @bind-Value="model!.Autor" Itens="autores" />
+    <button type="submit">Enviar</button>
+</EditForm>
+
+<p>
+    Autor: @(model!.Autor.Name)
+</p>
+
+@code {
+
+    [SupplyParameterFromForm]
+    private LivroModel? model { get; set; }
+    private List<SelectItemModel> autores = [];
+
+    protected override void OnInitialized()
+    {
+        model ??= new();
+        autores.AddRange([
+            new(1, "Ana"),
+            new(2, "Beto"),
+            new(3, "Carla"),
+            new(4, "Denis")
+        ]);
+    }
+    private void HandleSubmit(EditContext args)
+    {
+        Logger.LogInformation("Enviado!");
+    }
+}
