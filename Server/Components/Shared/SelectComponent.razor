@@ -3,7 +3,7 @@
 
 <div class="input-group">
     <input type="text" class="form-control" disabled @bind="name" />
-    <button type="button" class="btn btn-outline-secondary" @onclick="() => show = true">
+    <button type="button" class="btn btn-outline-secondary" @onclick="OpenPopup">
         Selecionar
     </button>
 </div>
@@ -114,5 +114,10 @@
         debCts?.Cancel();
         debCts?.Dispose();
         debCts = null;
+    }
+    private void OpenPopup(MouseEventArgs args)
+    {
+        OnClear();
+        show = true;
     }
 }

@@ -1,17 +1,68 @@
-﻿<h3>AutorComponent</h3>
-@* para bind complexo, usar tipo imutavel, record.
+﻿@using Blazor.Core.Domain.Dto
+@using System.Diagnostics.CodeAnalysis
 
-public sealed record OptionItem
-{
-    public int? Id { get; init; }
-    public string Nome { get; init; } = string.Empty;
-}
+@inherits InputBase<AutorDto>
 
-ou 
+<SelectComponent ItemList="items" @bind-ItemSelected="item" @bind-ItemSelected:after="HandleChange" />
 
-public sealed record OptionItem(int? Id, string Nome);
+@CssClass
 
- *@
 @code {
 
+    private SelectComponent.Item item = new(null, string.Empty);
+    private List<SelectComponent.Item> items = [];
+    private ValidationMessageStore? _messageStore;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        items = [
+            new(1, "Ana"),
+            new(2, "Beto")
+        ];
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        item = new(Value?.Id, Value?.Nome ?? string.Empty);
+    }
+
+    protected override bool TryParseValueFromString(
+        string? value, 
+        [MaybeNullWhen(false)] out AutorDto result, 
+        [NotNullWhen(false)] out string validationErrorMessage)
+    {
+        var nome = CurrentValue?.Nome ?? "";
+        if(nome.Length <= 3)
+        {
+            result = null;
+            validationErrorMessage = "Nome Curto!";
+            return false;
+        }
+            
+        result = CurrentValue!;
+        validationErrorMessage = string.Empty;
+        return true;
+    }
+    private void HandleChange()
+    {
+        _messageStore ??= new(EditContext);
+        AutorDto autor = new()
+        {
+            Id = item.Id ?? 0,
+            Nome = item.Name
+        };
+
+        CurrentValue = autor;
+
+        _messageStore.Clear(FieldIdentifier);
+        if(autor.Nome.Length <= 3)
+        {
+            _messageStore.Add(FieldIdentifier, "Nome Curto!");
+        }
+
+        EditContext.NotifyFieldChanged(FieldIdentifier);
+        EditContext.NotifyValidationStateChanged();
+    }
 }

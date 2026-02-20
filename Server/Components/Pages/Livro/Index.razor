@@ -1,0 +1,11 @@
+﻿@page "/livros"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<h3>Livros</h3>
+
+<button type="button" class="btn btn-primary" @onclick='() => Nav.NavigateTo("/livros/add")'>Novo Livro</button>
+
+@code {
+
+}

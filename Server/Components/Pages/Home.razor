@@ -1,27 +1,13 @@
 ﻿@page "/"
-@using Blazor.Server.Components.Shared
+@inject NavigationManager Nav
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<SelectComponent @bind-ItemSelected="autor" ItemList="valueList" />
+<button type="button" class="btn btn-link" @onclick='() => Nav.NavigateTo("/livros")'>Livros</button>
 
-<p>Id: @(autor?.Id ?? 0)</p>
-<p>Autor: @(autor?.Name ?? "Autor Desconhecido")</p>
+<hr />
 
 @code {
-    private SelectComponent.Item? autor;
-
-    private List<SelectComponent.Item> valueList = [];
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        valueList = [
-            new(1, "Ana"),
-            new(2, "Beto"),
-            new(3, "Carla"),
-            new(4, "Denis")
-        ];
-    }
+    
 }
