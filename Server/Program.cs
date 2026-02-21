@@ -1,6 +1,8 @@
+using Blazor.Core.DataAccess;
 using Blazor.Core.Domain.Config;
 using Blazor.Core.IoC;
 using Blazor.Server.Components;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,5 +32,16 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+
+// Somente em testes, para garantir a criação do banco.
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var fac = services.GetRequiredService<IDbContextFactory<DataContext>>();
+    await using var db = await fac.CreateDbContextAsync();
+    await db.Database.EnsureCreatedAsync();
+}
 
 app.Run();

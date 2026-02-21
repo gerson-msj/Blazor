@@ -1,6 +1,7 @@
 ﻿@page "/livros/add"
-@inject ILogger<LivroAdd> Logger
+@inject ILogger<LivroAdd> logger
 @inject LivroService service
+@inject NavigationManager nav
 
 @rendermode InteractiveServer
 
@@ -59,13 +60,8 @@
     private async Task HandleSubmit(EditContext args)
     {
         LivroDto livro = model!.ToDto();
-        try
-        {
-
-        }
-        catch (Exception ex)
-        {
-
-        }
+        await service.Create(livro.ToNewEntity());
+        model = new();
+        nav.NavigateTo("/livros");
     }
 }
