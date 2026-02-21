@@ -31,15 +31,25 @@ h1:focus {
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    border-left: 5px solid #26b050;
 }
 
 .invalid {
-    outline: 1px solid #e50000;
+    border-left: 5px solid #b32121;
 }
 
+.validation-errors {
+    border: 1px solid #ac8e8e;
+    border-radius: 6px;
+    margin: 15px 0 15px 0;
+    padding: 5px;
+}   
+
 .validation-message {
-    color: #e50000;
+    color: #b32121;
+    list-style-type: none;
+    margin: 3px;
+    
 }
 
 .blazor-error-boundary {

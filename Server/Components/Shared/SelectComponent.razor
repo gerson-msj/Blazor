@@ -1,11 +1,11 @@
 @using Blazor.Server.Models
 @using System.Diagnostics.CodeAnalysis
 @implements IDisposable
-@inherits InputBase<SelectItemModel>
+@inherits InputBase<SelectItemModel?>
 @inject ILogger<SelectComponent> Logger
 
-<div class="input-group @CssClass">
-    <input type="text" class="form-control" disabled value="@item.Name" />
+<div class="input-group">
+    <input type="text" class="form-control @CssClass" disabled value="@item.Name" />
     <button type="button" class="btn btn-outline-secondary" @onclick="OpenPopup">
         Selecionar
     </button>

@@ -1,23 +1,44 @@
 ﻿@page "/livros/add"
 @inject ILogger<LivroAdd> Logger
+@inject LivroService service
+
 @rendermode InteractiveServer
 
 @using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
 @using Blazor.Server.Components.Shared
 @using Blazor.Server.Models
 
 <h3>Add</h3>
 
 <EditForm FormName="livro_add" Model="model" OnValidSubmit="HandleSubmit">
+    <AntiforgeryToken />
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label"> Autor: </label>
+        <SelectComponent @bind-Value="model!.Autor" Itens="autores" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label"> Título: </label>
+        <InputText @bind-Value="model!.Titulo" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label"> Data de conclusão: </label>
+        <InputDate @bind-Value="model.DataConclusao" class="form-control" Type="InputDateType.Date" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label"> Comentários: </label>
+        <InputTextArea @bind-Value="model.Comentarios" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Adicionar</button>
+
     <ValidationSummary />
-
-    <SelectComponent @bind-Value="model!.Autor" Itens="autores" />
-    <button type="submit">Enviar</button>
 </EditForm>
-
-<p>
-    Autor: @(model!.Autor.Name)
-</p>
 
 @code {
 
@@ -35,8 +56,16 @@
             new(4, "Denis")
         ]);
     }
-    private void HandleSubmit(EditContext args)
+    private async Task HandleSubmit(EditContext args)
     {
-        Logger.LogInformation("Enviado!");
+        LivroDto livro = model!.ToDto();
+        try
+        {
+
+        }
+        catch (Exception ex)
+        {
+
+        }
     }
 }

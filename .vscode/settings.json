@@ -10,5 +10,14 @@
   "files.watcherExclude": {
     "**/bin/**": true,
     "**/obj/**": true
+  },
+  "dotnet.formatting.organizeImportsOnFormat": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always",
+    "source.fixAll.eslint": "explicit"
+  },
+  "notebook.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
   }
 }

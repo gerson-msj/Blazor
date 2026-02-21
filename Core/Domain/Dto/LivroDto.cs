@@ -6,11 +6,8 @@ namespace Blazor.Core.Domain.Dto;
 public class LivroDto
 {
     public int Id { get; set; }
-
-    [Required]
-    [MaxLength(2, ErrorMessage = "Não pode!!!")]
     public string Titulo { get; set; } = string.Empty;
-    public AutorDto Autor {get;set;} = null!;
+    public AutorDto Autor { get; set; } = null!;
     public SerieDto? Serie { get; set; }
     public int? Ordem { get; set; }
     public DateOnly? DataConclusao { get; set; }
@@ -23,8 +20,8 @@ public class LivroDto
         Id = entity.Id;
         Titulo = entity.Titulo;
         Autor = new(entity.Autor);
-        
-        if(entity.Serie is not null)
+
+        if (entity.Serie is not null)
             Serie = new(entity.Serie);
 
         Ordem = entity.Ordem;
