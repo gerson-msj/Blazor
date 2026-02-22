@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Blazor.Core.IoC;
 
 public static class DependencyInjection
-{   
+{
     public static IServiceCollection Config(IServiceCollection services)
     {
         services.AddPooledDbContextFactory<DataContext>((sp, options) =>
@@ -20,6 +20,7 @@ public static class DependencyInjection
 
         return services
             .AddScoped<DataFactory>()
-            .AddScoped<LivroService>();
+            .AddScoped<LivroService>()
+            .AddScoped<AutorService>();
     }
 }

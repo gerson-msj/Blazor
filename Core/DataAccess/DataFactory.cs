@@ -9,7 +9,8 @@ public sealed class DataFactory(IDbContextFactory<DataContext> contextFactory)
         var dataContext = await contextFactory.CreateDbContextAsync(ct);
         return new(
             dataContext,
-            livroRepository: new(dataContext)
+            livroRepository: new(dataContext),
+            autorRepository: new(dataContext)
         );
     }
 
