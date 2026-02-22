@@ -2,6 +2,7 @@ using Blazor.Core.DataAccess;
 using Blazor.Core.Domain.Config;
 using Blazor.Core.IoC;
 using Blazor.Server.Components;
+using Blazor.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,9 @@ builder.Services.AddRazorComponents()
 
 builder.Services
     .Configure<SqliteConfig>(builder.Configuration.GetSection(nameof(SqliteConfig)));
+
+builder.Services
+    .AddScoped<MsgboxService>();
 
 DependencyInjection.Config(builder.Services);
 

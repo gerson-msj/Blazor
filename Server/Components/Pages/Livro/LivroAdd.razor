@@ -3,6 +3,8 @@
 @inject LivroService service
 @inject AutorService autorService
 @inject NavigationManager nav
+@inject MsgboxService msgboxService
+
 @rendermode InteractiveServer
 
 @using Blazor.Core.Domain.Dto
@@ -45,11 +47,14 @@
     <ValidationSummary />
 </EditForm>
 
+<button type="button" class="btn btn-secondary" @onclick="ShowMsg">@ok</button>
 @code {
 
     [SupplyParameterFromForm]
     private LivroModel? model { get; set; }
     private List<SelectItemModel> autores = [];
+
+    private string ok = "Testar";
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,5 +80,12 @@
     private void GoBack()
     {
         nav.NavigateTo("/livros");
+    }
+    private async Task ShowMsg(MouseEventArgs args)
+    {
+        MsgboxRequest request = new(null, "Teste", null);
+        var result = await msgboxService.Show(request);
+        ok = "Ok!!!!";
+
     }
 }

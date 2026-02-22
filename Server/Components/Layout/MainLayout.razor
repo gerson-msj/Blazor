@@ -1,12 +1,19 @@
 ﻿@inherits LayoutComponentBase
 @inject MsgboxService msgboxService
 
+@implements IDisposable
+
 <div class="page">
     <header>
         <h1>Biblioteca</h1>
     </header>
     <main>
         @Body
+        <hr />
+        <h1>
+            Title: @msgboxService.Request?.MsgText
+        </h1>
+        <button @onclick="HandleClick">Fechar</button>
     </main>
 </div>
 
@@ -26,18 +33,36 @@
         </article>
     </main>
 </div>
-*@
+
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+*@
 
+<p>
+
+</p>
 
 @code {
     protected override void OnInitialized()
     {
-        base.OnInitialized();
-        msgboxService.Teste = "MainLayout";
+        msgboxService.Changed += OnChanged;
+    }
+
+    private void OnChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        msgboxService.Changed -= OnChanged;
+    }
+
+    private void HandleClick(MouseEventArgs args)
+    {
+        msgboxService.Close();
     }
 }
