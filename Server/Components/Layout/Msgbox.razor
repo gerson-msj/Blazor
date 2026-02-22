@@ -1,0 +1,53 @@
+﻿<Popup @bind-Show="Show" Titulo="@Title" OnBackdropClick="@HandleBackdropClick" DisableBackdrop="hasButton">
+    <div>
+        @ChildContent
+    </div>
+    @if (hasButton)
+    {
+        <div class="btn-group" role="group">
+            @if (hasOk)
+            {
+                <button type="button" class="btn btn-primary" @onclick="HandleOk">@OkLabel</button>
+            }
+            @if (hasCancel)
+            {
+                <button type="button" class="btn btn-danger" @onclick="HandleCancel">@CancelLabel</button>
+            }
+        </div>
+    }
+</Popup>
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? OkLabel { get; set; }
+    [Parameter] public string? CancelLabel { get; set; }
+    [Parameter] public EventCallback OnOk { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnBackdropClick { get; set; }
+
+    private bool hasOk => !string.IsNullOrEmpty(OkLabel);
+    private bool hasCancel => !string.IsNullOrEmpty(CancelLabel);
+    private bool hasButton => hasOk || hasCancel;
+
+    private async Task HandleOk()
+    {
+        await ShowChanged.InvokeAsync(false);
+        if (OnOk.HasDelegate) await OnOk.InvokeAsync();
+    }
+    private async Task HandleCancel()
+    {
+        await ShowChanged.InvokeAsync(false);
+        if (OnCancel.HasDelegate) await OnCancel.InvokeAsync();
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        await ShowChanged.InvokeAsync(false);
+        if (OnBackdropClick.HasDelegate) await OnBackdropClick.InvokeAsync();
+    }
+
+
+}

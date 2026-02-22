@@ -1,8 +1,8 @@
 ﻿@page "/livros/add"
 @inject ILogger<LivroAdd> logger
 @inject LivroService service
+@inject AutorService autorService
 @inject NavigationManager nav
-
 @rendermode InteractiveServer
 
 @using Blazor.Core.Domain.Dto
@@ -10,7 +10,10 @@
 @using Blazor.Server.Components.Shared
 @using Blazor.Server.Models
 
-<h3>Add</h3>
+<PageTitle>Novo Livro</PageTitle>
+
+<h2>Novo Livro</h2>
+<hr />
 
 <EditForm FormName="livro_add" Model="model" OnValidSubmit="HandleSubmit">
     <AntiforgeryToken />
@@ -37,6 +40,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Adicionar</button>
+    <button type="button" class="btn btn-secondary" @onclick="GoBack">Voltar</button>
 
     <ValidationSummary />
 </EditForm>
@@ -47,21 +51,29 @@
     private LivroModel? model { get; set; }
     private List<SelectItemModel> autores = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         model ??= new();
-        autores.AddRange([
-            new(1, "Ana"),
-            new(2, "Beto"),
-            new(3, "Carla"),
-            new(4, "Denis")
-        ]);
+        await ObterAutores();
+        await base.OnInitializedAsync();
     }
+
     private async Task HandleSubmit(EditContext args)
     {
         LivroDto livro = model!.ToDto();
         await service.Create(livro.ToNewEntity());
         model = new();
+        GoBack();
+    }
+
+    private async Task ObterAutores()
+    {
+        var entities = await autorService.ToListAsync();
+        var dtos = entities.Select(e => new AutorDto(e));
+        autores.AddRange(dtos.Select(d => new SelectItemModel(d.Id, d.Nome)));
+    }
+    private void GoBack()
+    {
         nav.NavigateTo("/livros");
     }
 }
