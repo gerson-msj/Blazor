@@ -15,6 +15,7 @@ builder.Services
     .Configure<SqliteConfig>(builder.Configuration.GetSection(nameof(SqliteConfig)));
 
 builder.Services
+    .AddScoped<PopupService>()
     .AddScoped<MsgboxService>();
 
 DependencyInjection.Config(builder.Services);

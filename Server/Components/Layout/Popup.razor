@@ -1,40 +1,69 @@
-<div class="backdrop" @onclick="ClosePopup" style="@backdropStyle">
+@using Blazor.Server.Models
+@using Microsoft.AspNetCore.Server.HttpSys
+@using Microsoft.AspNetCore.SignalR.Protocol
+@inject PopupService service
+@implements IDisposable
+
+<div class="backdrop" @onclick="HandleBackdropClick" style="@backdropStyle">
     <div class="box" style="@boxStyle" @onclick:stopPropagation="true">
-        @if (!string.IsNullOrWhiteSpace(Titulo))
-        {
-            <div class="titulo">
-                @Titulo
-            </div>
-        }
-        <div class="conteudo">
-            @ChildContent
-        </div>
+        @ChildContent
     </div>
 </div>
 
 @code {
-    [Parameter] public string? Titulo { get; set; }
-    [Parameter] public int Width { get; set; } = 400;
+
+    [Parameter] public string PopupName { get; set; } = "default";
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public bool Show { get; set; }
-    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
-    [Parameter] public EventCallback OnBackdropClick { get; set; }
-    [Parameter] public bool DisableBackdrop { get; set; }
+
+    private PopupRequestModel request = new();
+    private bool isOpen;
 
     private string backdropStyle =>
-        $"{(DisableBackdrop ? "" : "cursor: pointer;")} {(Show ? "opacity: 1; visibility: visible; pointer-events: auto;" :
-"opacity: 0; visibility: hidden; pointer-events: none;")}";
+        $"{(request.DisableBackdrop ? "" : "cursor: pointer;")} {(isOpen
+                ? "opacity: 1; visibility: visible; pointer-events: auto;"
+                : "opacity: 0; visibility: hidden; pointer-events: none;")}";
     private string boxStyle =>
-        $"width: {Width}px; {(Show ? "opacity: 1; transform: translateY(0) scale(1);" : "opacity: 0; transform: translateY(6px) scale(0.98);")}";
+        $"width: {request.Width}px; {(isOpen
+            ? "opacity: 1; transform: translateY(0) scale(1);"
+            : "opacity: 0; transform: translateY(6px) scale(0.98);")}";
 
-    private async Task ClosePopup()
+    protected override void OnInitialized()
     {
-        if (!DisableBackdrop && Show)
-        {
-            await ShowChanged.InvokeAsync(false);
-            if (OnBackdropClick.HasDelegate)
-                await OnBackdropClick.InvokeAsync();
-        }
+        base.OnInitialized();
+        service.OnOpen += HandleOpen;
+        service.OnClose += HandleClose;
+    }
 
+    private void HandleOpen(PopupRequestModel request)
+    {
+        if (request.PopupName == PopupName)
+        {
+            this.request.Width = request.Width;
+            this.request.DisableBackdrop = request.DisableBackdrop;
+            isOpen = true;
+        }
+    }
+
+    private void HandleClose(string popupName)
+    {
+        if (popupName == PopupName)
+        {
+            isOpen = false;
+            // InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        if (!request.DisableBackdrop && isOpen)
+        {
+            service.Close(isBackdropClick: true, popupName: PopupName);
+        }
+    }
+
+    public void Dispose()
+    {
+        service.OnOpen -= HandleOpen;
+        service.OnClose -= HandleClose;
     }
 }

@@ -1,5 +1,8 @@
 ﻿@page "/"
 @inject NavigationManager Nav
+@inject MsgboxService msgbox
+@inject PopupService popup
+
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
@@ -8,10 +11,49 @@
 
 <hr />
 
-<Msgbox Title="Olá" @bind-Show="show" OkLabel="Olá">
-    😀
+<Msgbox MsgboxName="msgbox">
+    <p>Msgbox!</p>
 </Msgbox>
 
+<Popup PopupName="popup">
+    <p>Popup!</p>
+</Popup>
+
+<button type="button" @onclick="HandleMsgbox">@labelMsgbox</button>
+<button type="button" @onclick="HandlePopup">@labelPopup</button>
+
 @code {
-    private bool show = true;
+
+    private string labelMsgbox = "Abrir Msgbox";
+    private string labelPopup = "Abrir Popup";
+
+    protected override void OnInitialized()
+    {
+        popup.OnClose += HandlePopupClose;
+    }
+
+    private async Task HandleMsgbox()
+    {
+        var result = await msgbox.Open(new() { Title = "E ai?", Ok = "Blz!", Cancel = "Nop!", MsgboxName = "msgbox" });
+        labelMsgbox = $"Msgbox Result: {result.MsgboxResult.ToString()}";
+    }
+    private void HandlePopup()
+    {
+        popup.Open(new() { PopupName = "popup" });
+    }
+
+    private void HandlePopupClose(string popupName)
+    {
+        if (popupName == "popup")
+        {
+            labelPopup = $"Popup Closed: {popupName}";
+            InvokeAsync(StateHasChanged);
+        }
+
+    }
+
+    public void Dispose()
+    {
+        popup.OnClose -= HandlePopupClose;
+    }
 }

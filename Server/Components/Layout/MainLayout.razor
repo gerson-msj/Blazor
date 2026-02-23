@@ -1,19 +1,12 @@
 ﻿@inherits LayoutComponentBase
 @inject MsgboxService msgboxService
 
-@implements IDisposable
-
 <div class="page">
     <header>
         <h1>Biblioteca</h1>
     </header>
     <main>
         @Body
-        <hr />
-        <h1>
-            Title: @msgboxService.Request?.MsgText
-        </h1>
-        <button @onclick="HandleClick">Fechar</button>
     </main>
 </div>
 
@@ -40,29 +33,3 @@
     <span class="dismiss">🗙</span>
 </div>
 *@
-
-<p>
-
-</p>
-
-@code {
-    protected override void OnInitialized()
-    {
-        msgboxService.Changed += OnChanged;
-    }
-
-    private void OnChanged()
-    {
-        InvokeAsync(StateHasChanged);
-    }
-
-    public void Dispose()
-    {
-        msgboxService.Changed -= OnChanged;
-    }
-
-    private void HandleClick(MouseEventArgs args)
-    {
-        msgboxService.Close();
-    }
-}

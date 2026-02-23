@@ -1,53 +1,124 @@
-﻿<Popup @bind-Show="Show" Titulo="@Title" OnBackdropClick="@HandleBackdropClick" DisableBackdrop="hasButton">
+﻿@using Blazor.Server.Models
+@using Microsoft.EntityFrameworkCore.Storage.ValueConversion
+@using Microsoft.Extensions.Localization
+@inject PopupService popupService
+@inject MsgboxService msgboxService
+
+@implements IDisposable
+
+<Popup PopupName="@MsgboxName">
     <div>
-        @ChildContent
-    </div>
-    @if (hasButton)
-    {
-        <div class="btn-group" role="group">
-            @if (hasOk)
+        @if (!string.IsNullOrEmpty(request.Title))
+        {
+            <div>
+                @request.Title
+            </div>
+        }
+
+        <div>
+            @if (ChildContent is not null)
             {
-                <button type="button" class="btn btn-primary" @onclick="HandleOk">@OkLabel</button>
+                @ChildContent
             }
-            @if (hasCancel)
+            else
             {
-                <button type="button" class="btn btn-danger" @onclick="HandleCancel">@CancelLabel</button>
+                @request.Text
             }
         </div>
-    }
+
+        @if (!string.IsNullOrEmpty(request.DetailTitle) && !string.IsNullOrEmpty(request.Detail))
+        {
+            <div>
+                <div>@request.DetailTitle</div>
+                <div>@request.Detail</div>
+            </div>
+        }
+
+        @if (hasButton)
+        {
+            <div>
+                @if (hasOk)
+                {
+                    <button type="button" @onclick="HandleOk">@request.Ok</button>
+                }
+                @if (hasCancel)
+                {
+                    <button type="button" @onclick="HandleCancel">@request.Cancel</button>
+                }
+            </div>
+        }
+    </div>
 </Popup>
 
 @code {
-    [Parameter] public bool Show { get; set; }
-    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
-    [Parameter] public string? Title { get; set; }
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string? OkLabel { get; set; }
-    [Parameter] public string? CancelLabel { get; set; }
-    [Parameter] public EventCallback OnOk { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
-    [Parameter] public EventCallback OnBackdropClick { get; set; }
 
-    private bool hasOk => !string.IsNullOrEmpty(OkLabel);
-    private bool hasCancel => !string.IsNullOrEmpty(CancelLabel);
+    [Parameter] public string MsgboxName { get; set; } = "default";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private readonly MsgboxRequestModel request = new();
+    private TaskCompletionSource<MsgboxResultModel>? tcs;
+    private bool hasOk => !string.IsNullOrEmpty(request.Ok);
+    private bool hasCancel => !string.IsNullOrEmpty(request.Cancel);
     private bool hasButton => hasOk || hasCancel;
 
-    private async Task HandleOk()
+    protected override void OnInitialized()
     {
-        await ShowChanged.InvokeAsync(false);
-        if (OnOk.HasDelegate) await OnOk.InvokeAsync();
-    }
-    private async Task HandleCancel()
-    {
-        await ShowChanged.InvokeAsync(false);
-        if (OnCancel.HasDelegate) await OnCancel.InvokeAsync();
+        base.OnInitialized();
+        msgboxService.OnOpen += HandleOpen;
+        popupService.OnBackdropClick += HandleBackdropClick;
     }
 
-    private async Task HandleBackdropClick()
+    private void HandleOpen(MsgboxRequestModel request, TaskCompletionSource<MsgboxResultModel> tcs)
     {
-        await ShowChanged.InvokeAsync(false);
-        if (OnBackdropClick.HasDelegate) await OnBackdropClick.InvokeAsync();
+        if (request.MsgboxName == MsgboxName)
+        {
+            this.request.Title = request.Title;
+            this.request.Text = request.Text;
+            this.request.DetailTitle = request.DetailTitle;
+            this.request.Detail = request.Detail;
+            this.request.Ok = request.Ok;
+            this.request.Cancel = request.Cancel;
+            this.request.Width = request.Width;
+            this.tcs = tcs;
+
+            popupService.Open(new()
+            {
+                PopupName = MsgboxName,
+                Width = request.Width,
+                DisableBackdrop = hasButton
+            });
+        }
     }
 
+    public void HandleBackdropClick(string popupName)
+    {
+        if (popupName == MsgboxName)
+        {
+            ReturnResult(MsgboxResult.Cancel);
+        }
+    }
 
+    private void HandleOk()
+    {
+        popupService.Close(isBackdropClick: false, MsgboxName);
+        ReturnResult(MsgboxResult.Ok);
+    }
+    private void HandleCancel()
+    {
+        popupService.Close(isBackdropClick: false, MsgboxName);
+        ReturnResult(MsgboxResult.Cancel);
+    }
+
+    private void ReturnResult(MsgboxResult result)
+    {
+        var tcs = this.tcs;
+        this.tcs = null;
+        tcs?.TrySetResult(new(MsgboxName, result));
+    }
+
+    public void Dispose()
+    {
+        msgboxService.OnOpen -= HandleOpen;
+        popupService.OnBackdropClick -= HandleBackdropClick;
+        ReturnResult(MsgboxResult.None);
+    }
 }
