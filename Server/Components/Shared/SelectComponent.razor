@@ -3,6 +3,7 @@
 @implements IDisposable
 @inherits InputBase<SelectItemModel?>
 @inject ILogger<SelectComponent> Logger
+@inject PopupService popup
 
 <div class="input-group">
     <input type="text" class="form-control @CssClass" disabled value="@item.Name" />
@@ -11,7 +12,7 @@
     </button>
 </div>
 
-<Popup @bind-Show="show">
+<Popup PopupName="@popupName">
     <div class="input-group">
         <input type="text" class="form-control" @bind="name" @bind:event="oninput" @bind:after="HandleInputDebounce" />
         <button type="button" class="btn btn-outline-secondary" @onclick="ClearName">
@@ -31,11 +32,11 @@
 @code {
     [Parameter] public List<SelectItemModel> Itens { get; set; } = [];
     private List<SelectItemModel> filteredItens = [];
+    private const string popupName = "select_component_popup";
 
     private SelectItemModel item = new(0, string.Empty);
     private string name = string.Empty;
     private ValidationMessageStore? messageStore;
-    private bool show;
 
     protected override bool TryParseValueFromString(
             string? value,
@@ -63,8 +64,6 @@
         base.OnInitialized();
         HandleInput(string.Empty);
     }
-
-
 
     private async Task HandleInputDebounce()
     {
@@ -115,7 +114,7 @@
         messageStore ??= new(EditContext);
         messageStore.Clear(FieldIdentifier);
 
-        show = false;
+        popup.Close(false, popupName);
         name = item.Name;
         CurrentValue = item;
 
@@ -148,6 +147,6 @@
     private void OpenPopup(MouseEventArgs args)
     {
         ClearName();
-        show = true;
+        popup.Open(new() { PopupName = popupName, DisableBackdrop = true });
     }
 }

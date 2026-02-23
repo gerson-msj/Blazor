@@ -20,15 +20,15 @@
 }
 
 .box {
-    border: 1px solid black;
-    border-radius: 5px;
+    border: 1px solid rgb(150,150,150);
+    border-radius: 7px;
     background-color: rgb(240, 240, 240);
     cursor: default;
     height: fit-content;
     
     display: flex;
     flex-direction: column;
-    padding: 10px;
+    padding: 2px;
     opacity: 0;
     transform: translateY(6px) scale(0.98);
     transition: opacity 0.2s ease, transform 0.2s ease;

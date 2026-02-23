@@ -3,6 +3,7 @@
 @inject LivroService service
 @inject AutorService autorService
 @inject NavigationManager nav
+@inject MsgboxService msgbox
 
 @rendermode InteractiveServer
 
@@ -32,7 +33,7 @@
 
     <div class="mb-3">
         <label class="form-label"> Data de conclusão: </label>
-        <InputDate @bind-Value="model.DataConclusao" class="form-control" Type="InputDateType.Date" />
+        <InputDate @bind-Value="model.DataConclusao" class="form-control" Type="InputDateType.Month" />
     </div>
 
     <div class="mb-3">
@@ -40,11 +41,16 @@
         <InputTextArea @bind-Value="model.Comentarios" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Adicionar</button>
-    <button type="button" class="btn btn-secondary" @onclick="GoBack">Voltar</button>
+    <div class="btn-group">
+        <button type="submit" class="btn btn-primary">Adicionar</button>
+        <button type="button" class="btn btn-secondary" @onclick="GoBack">Voltar</button>
+    </div>
+
 
     <ValidationSummary />
 </EditForm>
+
+<Msgbox />
 
 @code {
 
@@ -52,19 +58,28 @@
     private LivroModel? model { get; set; }
     private List<SelectItemModel> autores = [];
 
-    private string ok = "Testar";
-
     protected override async Task OnInitializedAsync()
     {
         model ??= new();
-        await ObterAutores();
         await base.OnInitializedAsync();
+        if (!RendererInfo.IsInteractive)
+            await ObterAutores();
     }
 
     private async Task HandleSubmit(EditContext args)
     {
         LivroDto livro = model!.ToDto();
-        await service.Create(livro.ToNewEntity());
+        try
+        {
+            await service.Create(livro.ToNewEntity());
+            await msgbox.Open(new() { Text = "Gravação realizada com sucesso.", Ok = "Ok" });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha da gravação do livro");
+            await msgbox.Open(new() { Text = "Gravação não realizada!", Ok = "Ok" });
+        }
+
         model = new();
         GoBack();
     }

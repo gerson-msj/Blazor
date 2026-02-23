@@ -7,43 +7,37 @@
 @implements IDisposable
 
 <Popup PopupName="@MsgboxName">
-    <div>
+    <div class="card">
         @if (!string.IsNullOrEmpty(request.Title))
         {
-            <div>
+            <div class="card-header">
                 @request.Title
             </div>
         }
 
-        <div>
-            @if (ChildContent is not null)
-            {
-                @ChildContent
-            }
-            else
-            {
-                @request.Text
-            }
-        </div>
-
-        @if (!string.IsNullOrEmpty(request.DetailTitle) && !string.IsNullOrEmpty(request.Detail))
-        {
-            <div>
-                <div>@request.DetailTitle</div>
-                <div>@request.Detail</div>
+        <div class="card-body">
+            <div class="card-text">
+                @if (ChildContent is not null)
+                {
+                    @ChildContent
+                }
+                else
+                {
+                    @request.Text
+                }
             </div>
-        }
+        </div>
 
         @if (hasButton)
         {
-            <div>
+            <div class="card-footer btn-group">
                 @if (hasOk)
                 {
-                    <button type="button" @onclick="HandleOk">@request.Ok</button>
+                    <button type="button" class="btn btn-outline-primary" @onclick="HandleOk">@request.Ok</button>
                 }
                 @if (hasCancel)
                 {
-                    <button type="button" @onclick="HandleCancel">@request.Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HandleCancel">@request.Cancel</button>
                 }
             </div>
         }
@@ -73,8 +67,6 @@
         {
             this.request.Title = request.Title;
             this.request.Text = request.Text;
-            this.request.DetailTitle = request.DetailTitle;
-            this.request.Detail = request.Detail;
             this.request.Ok = request.Ok;
             this.request.Cancel = request.Cancel;
             this.request.Width = request.Width;

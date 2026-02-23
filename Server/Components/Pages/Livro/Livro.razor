@@ -1,11 +1,51 @@
 ﻿@page "/livros"
+@using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
 @rendermode InteractiveServer
 @inject NavigationManager Nav
+@inject LivroService service
 
-<h3>Livros</h3>
+<PageTitle>Livros</PageTitle>
 
-<button type="button" class="btn btn-primary" @onclick='() => Nav.NavigateTo("/livros/add")'>Novo Livro</button>
+<h2>Livros</h2>
+<hr />
+<button type="button" class="btn btn-primary" @onclick='() => Nav.NavigateTo("/livros/add")'>Adicionar Livro</button>
+<table class="table table-striped table-hover mt-3">
+    <thead>
+        <tr>
+            <th scope="col">Livro</th>
+            <th scope="col">Autor</th>
+            <th scope="col">Data de Conclusão</th>
+        </tr>
+    </thead>
+    <tbody class="table-group-divider">
+        @foreach (var livro in livros)
+        {
+            <tr>
+                <td>@livro.Titulo</td>
+                <td>@livro.Autor.Nome</td>
+                <td>@(livro.DataConclusao?.ToString("MMMM/yyyy") ?? "")</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 @code {
 
+    private List<LivroDto> livros = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RendererInfo.IsInteractive)
+        {
+            var entities = await service.ObterLivros();
+            livros.Clear();
+            if (entities is not null)
+            {
+                livros.AddRange(entities.Select(e => new LivroDto(e)));
+            }
+        }
+
+        await base.OnInitializedAsync();
+    }
 }

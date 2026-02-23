@@ -41,6 +41,7 @@
             this.request.Width = request.Width;
             this.request.DisableBackdrop = request.DisableBackdrop;
             isOpen = true;
+            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -49,7 +50,7 @@
         if (popupName == PopupName)
         {
             isOpen = false;
-            // InvokeAsync(StateHasChanged);
+            InvokeAsync(StateHasChanged);
         }
     }
 

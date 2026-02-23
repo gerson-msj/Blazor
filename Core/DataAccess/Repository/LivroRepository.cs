@@ -5,6 +5,15 @@ namespace Blazor.Core.DataAccess.Repository;
 
 public class LivroRepository(DataContext dataContext) : BaseRepository<LivroEntity>(dataContext)
 {
+
+    public Task<List<LivroEntity>> ObterLivros() =>
+        DbSet
+            .Include(e => e.Autor)
+            .Where(e => e.Serie == null)
+            .OrderBy(o => o.Autor.Nome)
+            .ThenBy(o => o.Titulo)
+            .ToListAsync();
+
     public new Task<LivroEntity?> FindAsync(int id) =>
         DbSet
             .Include(e => e.Autor)

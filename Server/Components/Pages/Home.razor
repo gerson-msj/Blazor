@@ -34,7 +34,13 @@
 
     private async Task HandleMsgbox()
     {
-        var result = await msgbox.Open(new() { Title = "E ai?", Ok = "Blz!", Cancel = "Nop!", MsgboxName = "msgbox" });
+        var result = await msgbox.Open(new()
+        {
+            Title = "E ai?",
+            Ok = "Blz!",
+            Cancel = "Nop!",
+            MsgboxName = "msgbox"
+        });
         labelMsgbox = $"Msgbox Result: {result.MsgboxResult.ToString()}";
     }
     private void HandlePopup()

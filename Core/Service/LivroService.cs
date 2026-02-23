@@ -6,6 +6,10 @@ namespace Blazor.Core.Service;
 
 public class LivroService(DataFactory dataFactory)
 {
+
+    public Task<List<LivroEntity>> ObterLivros() =>
+        dataFactory.ExecuteAsync(uow => uow.LivroRepository.ObterLivros());
+
     public Task<List<LivroEntity>> ToListAsync() =>
         dataFactory.ExecuteAsync(uow => uow.LivroRepository.ToListAsync());
 
@@ -23,7 +27,7 @@ public class LivroService(DataFactory dataFactory)
     {
         await using Uow uow = await dataFactory.CreateUowAsync();
         var livroDb = await uow.LivroRepository.FindAsync(entity.Id);
-        if(livroDb == null) return false;
+        if (livroDb == null) return false;
         LivroDto dto = new(entity);
         dto.ApplyToEntity(livroDb);
         await uow.SaveChangesAsync();
@@ -33,7 +37,7 @@ public class LivroService(DataFactory dataFactory)
     public async Task<bool> Delete(int id)
     {
         await using Uow uow = await dataFactory.CreateUowAsync();
-        if(await uow.LivroRepository.FindAsync(id) is LivroEntity livro)
+        if (await uow.LivroRepository.FindAsync(id) is LivroEntity livro)
         {
             uow.LivroRepository.Remove(livro);
             await uow.SaveChangesAsync();
