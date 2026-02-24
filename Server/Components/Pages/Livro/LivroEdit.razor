@@ -1,0 +1,68 @@
+@page "/livros/edit/{id:int}"
+@inject LivroService service
+@inject MsgboxService msgbox
+@inject NavigationManager nav
+
+@rendermode InteractiveServer
+
+@using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
+@using Blazor.Server.Components.Shared
+@using Blazor.Server.Models
+
+<PageTitle>Editar Livro</PageTitle>
+
+<h2>Editar Livro</h2>
+
+@if (livro is null)
+{
+    <p>Aguarde...</p>
+}
+else
+{
+    <LivroFormComponent @bind-Livro="livro" GoBack="HandleGoBack" />
+}
+
+<Msgbox MsgboxName="@msgboxName" />
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private const string msgboxName = "livro_edit";
+    private LivroModel? livro;
+    private bool livroNaoLocalizado;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        livro = await ObterLivro();
+        livroNaoLocalizado = livro is null;
+        await base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (livroNaoLocalizado)
+        {
+            livroNaoLocalizado = false;
+            await msgbox.Open(new() { Text = "Livro não localizado!", Ok = "Voltar", MsgboxName = msgboxName });
+            HandleGoBack();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void HandleGoBack()
+    {
+        nav.NavigateTo("/livros");
+    }
+
+    public async Task<LivroModel?> ObterLivro()
+    {
+        var entity = await service.FindAsync(Id);
+        if (entity is null)
+            return null;
+
+        LivroDto dto = new(entity);
+        return new(dto);
+    }
+}

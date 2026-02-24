@@ -1,7 +1,6 @@
 ﻿@page "/livros/add"
 @inject ILogger<LivroAdd> logger
 @inject LivroService service
-@inject AutorService autorService
 @inject NavigationManager nav
 @inject MsgboxService msgbox
 
@@ -17,61 +16,25 @@
 <h2>Novo Livro</h2>
 <hr />
 
-<EditForm FormName="livro_add" Model="model" OnValidSubmit="HandleSubmit">
-    <AntiforgeryToken />
-    <DataAnnotationsValidator />
-
-    <div class="mb-3">
-        <label class="form-label"> Autor: </label>
-        <SelectComponent @bind-Value="model!.Autor" Itens="autores" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label"> Título: </label>
-        <InputText @bind-Value="model!.Titulo" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label"> Data de conclusão: </label>
-        <InputDate @bind-Value="model.DataConclusao" class="form-control" Type="InputDateType.Month" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label"> Comentários: </label>
-        <InputTextArea @bind-Value="model.Comentarios" class="form-control" />
-    </div>
-
-    <div class="btn-group">
-        <button type="submit" class="btn btn-primary">Adicionar</button>
-        <button type="button" class="btn btn-secondary" @onclick="GoBack">Voltar</button>
-    </div>
-
-
-    <ValidationSummary />
-</EditForm>
-
+<LivroFormComponent @bind-Livro="livro" @bind-Livro:after="HandleSubmit" GoBack="HandleGoBack" />
 <Msgbox />
 
 @code {
 
-    [SupplyParameterFromForm]
-    private LivroModel? model { get; set; }
-    private List<SelectItemModel> autores = [];
+    private LivroModel livro { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        model ??= new();
-        await base.OnInitializedAsync();
-        if (!RendererInfo.IsInteractive)
-            await ObterAutores();
+        livro ??= new();
+        base.OnInitialized();
     }
 
-    private async Task HandleSubmit(EditContext args)
+    private async Task HandleSubmit()
     {
-        LivroDto livro = model!.ToDto();
+        LivroDto dto = livro!.ToDto();
         try
         {
-            await service.Create(livro.ToNewEntity());
+            await service.Create(dto.ToNewEntity());
             await msgbox.Open(new() { Text = "Gravação realizada com sucesso.", Ok = "Ok" });
         }
         catch (Exception ex)
@@ -80,17 +43,11 @@
             await msgbox.Open(new() { Text = "Gravação não realizada!", Ok = "Ok" });
         }
 
-        model = new();
-        GoBack();
+        livro = new();
+        HandleGoBack();
     }
 
-    private async Task ObterAutores()
-    {
-        var entities = await autorService.ToListAsync();
-        var dtos = entities.Select(e => new AutorDto(e));
-        autores.AddRange(dtos.Select(d => new SelectItemModel(d.Id, d.Nome)));
-    }
-    private void GoBack()
+    private void HandleGoBack()
     {
         nav.NavigateTo("/livros");
     }

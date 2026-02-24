@@ -1,0 +1,70 @@
+﻿@using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
+@using Blazor.Server.Models
+@inject AutorService autorService
+
+<EditForm FormName="livro_form" Model="Livro" OnValidSubmit="HandleSubmit">
+    <AntiforgeryToken />
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label"> Autor: </label>
+        <SelectComponent @bind-Value="Livro!.Autor" Itens="autores" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label"> Título: </label>
+        <InputText @bind-Value="Livro!.Titulo" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label"> Data de conclusão: </label>
+        <InputDate @bind-Value="Livro.DataConclusao" class="form-control" Type="InputDateType.Month" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label"> Comentários: </label>
+        <InputTextArea @bind-Value="Livro.Comentarios" class="form-control" />
+    </div>
+
+    <div class="btn-group">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" @onclick="HandleGoBack">Voltar</button>
+    </div>
+
+
+    <ValidationSummary />
+</EditForm>
+
+@code {
+
+    [Parameter, EditorRequired] public LivroModel Livro { get; set; } = default!;
+    [Parameter] public EventCallback<LivroModel> LivroChanged { get; set; }
+    [Parameter] public EventCallback GoBack { get; set; }
+    private List<SelectItemModel> autores = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RendererInfo.IsInteractive)
+            await ObterAutores();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task ObterAutores()
+    {
+        var entities = await autorService.ToListAsync();
+        var dtos = entities.Select(e => new AutorDto(e));
+        autores.AddRange(dtos.Select(d => new SelectItemModel(d.Id, d.Nome)));
+    }
+
+    private Task HandleSubmit()
+    {
+        return LivroChanged.InvokeAsync(Livro);
+    }
+
+    private Task HandleGoBack()
+    {
+        return GoBack.InvokeAsync();
+    }
+}
