@@ -1,0 +1,94 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Blazor.Server.Models
+
+@implements IDisposable
+
+@code {
+    [CascadingParameter, EditorRequired] private EditContext editContext { get; set; } = default!;
+    private ValidationMessageStore validationMessageStore = default!;
+
+    protected override void OnInitialized()
+    {
+        validationMessageStore = new ValidationMessageStore(editContext);
+        editContext.OnValidationRequested += ValidationRequested;
+        editContext.OnFieldChanged += FieldChanged;
+    }
+
+    private void ValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        ValidateForm();
+    }
+
+    private void FieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        ValidateForm(e.FieldIdentifier);
+    }
+
+    private void ValidateForm(FieldIdentifier? fieldIdentifier = null)
+    {
+        if (fieldIdentifier is not null)
+            validationMessageStore.Clear(fieldIdentifier.Value);
+        else
+            validationMessageStore.Clear();
+
+        var validationResults = ValidateModel(editContext.Model);
+        foreach (var validationResult in validationResults)
+        {
+            var memberNames = validationResult.MemberNames?.Any() == true
+                ? validationResult.MemberNames
+                : [string.Empty];
+
+            foreach (var memberName in memberNames)
+                AddValidationMessage(editContext.Model, memberName, validationResult.ErrorMessage ?? "Inválido.", fieldIdentifier);
+        }
+
+        editContext.NotifyValidationStateChanged();
+    }
+
+    private static List<ValidationResult> ValidateModel(object instance)
+    {
+        List<ValidationResult> validationResults = [];
+        var validationContext = new ValidationContext(instance);
+        Validator.TryValidateObject(instance, validationContext, validationResults, validateAllProperties: true);
+        return validationResults;
+    }
+
+    private void AddValidationMessage(object instance, string memberName, string message, FieldIdentifier? fieldIdentifier)
+    {
+        var field = CreateFieldIdentifier(instance, memberName);
+        var addValidation = fieldIdentifier is null
+            || (ReferenceEquals(fieldIdentifier.Value.Model, field.Model)
+                && fieldIdentifier.Value.FieldName == field.FieldName);
+
+        if (addValidation)
+            validationMessageStore.Add(field, message);
+    }
+
+    private static FieldIdentifier CreateFieldIdentifier(object instance, string memberName)
+    {
+        var model = instance;
+        var fieldName = memberName;
+
+        if (instance is SerieModel serieModel
+            && memberName.StartsWith($"{nameof(SerieModel.Livros)};", StringComparison.Ordinal))
+        {
+            var parts = memberName.Split(';', 3);
+            if (parts.Length == 3
+                && int.TryParse(parts[1], out var index)
+                && index >= 0
+                && index < serieModel.Livros.Count)
+            {
+                model = serieModel.Livros[index];
+                fieldName = parts[2];
+            }
+        }
+
+        return new FieldIdentifier(model, fieldName);
+    }
+
+    public void Dispose()
+    {
+        editContext.OnValidationRequested -= ValidationRequested;
+        editContext.OnFieldChanged -= FieldChanged;
+    }
+}

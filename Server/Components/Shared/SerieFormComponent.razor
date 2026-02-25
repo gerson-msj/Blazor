@@ -1,9 +1,9 @@
-﻿@using Blazor.Server.Models
-@using System.ComponentModel.DataAnnotations
+@using Blazor.Server.Models
+@using Microsoft.AspNetCore.Components.Forms
 
 <EditForm FormName="serie_form" Model="Model" OnValidSubmit="HandleSubmit">
     <AntiforgeryToken />
-    <DataAnnotationsValidator />
+    <SerieFormValidation />
 
     <div class="mb-3">
         <label class="form-label">Série:</label>
@@ -29,13 +29,13 @@
             {
                 <tr @key="livro.Key">
                     <td>
-                        <InputText @bind-Value="livro.Titulo" />
+                        <InputText @bind-Value="livro.Titulo" class="form-control" />
                     </td>
                     <td>
-                        <InputNumber @bind-Value="livro.Ordem" />
+                        <InputNumber @bind-Value="livro.Ordem" class="form-control" />
                     </td>
                     <td>
-                        <InputDate Type="InputDateType.Month" @bind-Value="livro.DataConclusao" />
+                        <InputDate Type="InputDateType.Month" @bind-Value="livro.DataConclusao" class="form-control" />
                     </td>
                     <td>
                         <button type="button" class="btn btn-outline-danger"
@@ -51,7 +51,10 @@
                 </tr>
             </tbody>
         </table>
-
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <button type="button" class="btn btn-secondary" @onclick="GoBack">Voltar</button>
+        </div>
 
         <ValidationSummary />
     </EditForm>
@@ -67,11 +70,22 @@
     private BaseLivroModel livroModel = new();
     private Msgbox msgbox = null!;
 
+    @* private EditContext editContext = default!; *@
 
-    private void HandleSubmit()
+    @* protected override void OnParametersSet()
     {
-        throw new NotImplementedException();
+        if (editContext is not null && ReferenceEquals(editContext.Model, Model))
+            return;
+
+        editContext = new(Model);
+        editContext.SetFieldCssClassProvider(new SerieFieldCssClassProvider());
+    } *@
+
+    private Task HandleSubmit()
+    {
+        return ModelChanged.InvokeAsync(Model);
     }
+
     private void AdicionarLivro()
     {
         int ordem = Model.Livros
@@ -104,14 +118,29 @@
         var ordem = livro.Ordem ?? 0;
         livro.Excluido = true;
 
-        Model.Livros
-            .Where(l => !l.Excluido && l.Ordem.HasValue && l.Ordem > ordem)
-            .ToList()
-            .ForEach(l => l.Ordem = l.Ordem ?? 0 + 1);
+        foreach (var l in Model.Livros)
+            if (!l.Excluido && l.Ordem.HasValue && l.Ordem > ordem)
+                l.Ordem--;
 
         if (livro.Id == 0)
         {
             Model.Livros.Remove(livro);
         }
     }
+
+    private sealed class SerieFieldCssClassProvider : FieldCssClassProvider
+    {
+        public override string GetFieldCssClass(EditContext editContext, in FieldIdentifier fieldIdentifier)
+        {
+            if (fieldIdentifier.Model is BaseLivroModel)
+                return string.Empty;
+
+            var isValid = !editContext.GetValidationMessages(fieldIdentifier).Any();
+            if (editContext.IsModified(fieldIdentifier))
+                return isValid ? "modified valid" : "modified invalid";
+
+            return isValid ? "valid" : "invalid";
+        }
+    }
+
 }
