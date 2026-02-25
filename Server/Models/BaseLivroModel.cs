@@ -5,6 +5,8 @@ namespace Blazor.Server.Models;
 
 public class BaseLivroModel
 {
+    public Guid Key { get; set; } = Guid.NewGuid();
+    public bool Excluido { get; set; }
     public int Id { get; set; }
 
     [DisplayName("Título")]

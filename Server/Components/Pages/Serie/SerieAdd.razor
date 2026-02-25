@@ -1,0 +1,16 @@
+﻿@page "/series/add"
+@using Blazor.Server.Components.Shared
+@using Blazor.Server.Models
+
+@rendermode InteractiveServer
+
+<PageTitle>Nova Série</PageTitle>
+
+<h2>Nova Série</h2>
+<hr />
+
+<SerieFormComponent @bind-Model="model" />
+
+@code {
+    private SerieModel model = new();
+}

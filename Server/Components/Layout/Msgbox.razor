@@ -1,11 +1,7 @@
-﻿@using Blazor.Server.Models
-@using Microsoft.Extensions.Localization
-@inject PopupService popupService
-@inject MsgboxService msgboxService
-
+@using Markdig
 @implements IDisposable
 
-<Popup PopupName="@MsgboxName">
+<Popup @ref="popup" OnClose="HandleClose">
     <div class="card">
         @if (!string.IsNullOrEmpty(request.Title))
         {
@@ -22,7 +18,7 @@
                 }
                 else
                 {
-                    @request.Text
+                    @markdownText
                 }
             </div>
         </div>
@@ -32,11 +28,13 @@
             <div class="card-footer btn-group">
                 @if (hasOk)
                 {
-                    <button type="button" class="btn btn-outline-primary" @onclick="HandleOk">@request.Ok</button>
+                    <button type="button" class="btn btn-outline-primary"
+                            @onclick="() => Close(Response.Ok)">@request.Ok</button>
                 }
                 @if (hasCancel)
                 {
-                    <button type="button" class="btn btn-outline-secondary" @onclick="HandleCancel">@request.Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary"
+                            @onclick="() => Close(Response.Cancel)">@request.Cancel</button>
                 }
             </div>
         }
@@ -44,72 +42,62 @@
 </Popup>
 
 @code {
+    public class Request
+    {
+        public string? Title { get; set; }
+        public string? Text { get; set; }
+        public string? Ok { get; set; }
+        public string? Cancel { get; set; }
+        public int Width { get; set; } = 400;
+    }
 
-    [Parameter] public string MsgboxName { get; set; } = "default";
+    public enum Response
+    {
+        Ok,
+        Cancel,
+        None
+    }
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    private readonly MsgboxRequestModel request = new();
-    private TaskCompletionSource<MsgboxResultModel>? tcs;
+    private Popup popup = null!;
+    private Request request = new();
+    private MarkupString markdownText => new(Markdown.ToHtml(request.Text ?? string.Empty));
     private bool hasOk => !string.IsNullOrEmpty(request.Ok);
     private bool hasCancel => !string.IsNullOrEmpty(request.Cancel);
     private bool hasButton => hasOk || hasCancel;
+    private TaskCompletionSource<Response>? tcs;
 
-    protected override void OnInitialized()
+    public Task<Response> Open(Request request)
     {
-        base.OnInitialized();
-        msgboxService.OnOpen += HandleOpen;
-        popupService.OnBackdropClick += HandleBackdropClick;
-    }
-
-    private void HandleOpen(MsgboxRequestModel request, TaskCompletionSource<MsgboxResultModel> tcs)
-    {
-        if (request.MsgboxName == MsgboxName)
+        this.request = request;
+        popup.Open(new()
         {
-            this.request.Title = request.Title;
-            this.request.Text = request.Text;
-            this.request.Ok = request.Ok;
-            this.request.Cancel = request.Cancel;
-            this.request.Width = request.Width;
-            this.tcs = tcs;
+            Width = request.Width,
+            DisableBackdrop = hasButton
+        });
 
-            popupService.Open(new()
-            {
-                PopupName = MsgboxName,
-                Width = request.Width,
-                DisableBackdrop = hasButton
-            });
-        }
+        tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        return tcs.Task;
     }
 
-    public void HandleBackdropClick(string popupName)
+    private void Close(Response response)
     {
-        if (popupName == MsgboxName)
-        {
-            ReturnResult(MsgboxResult.Cancel);
-        }
-    }
-
-    private void HandleOk()
-    {
-        popupService.Close(isBackdropClick: false, MsgboxName);
-        ReturnResult(MsgboxResult.Ok);
-    }
-    private void HandleCancel()
-    {
-        popupService.Close(isBackdropClick: false, MsgboxName);
-        ReturnResult(MsgboxResult.Cancel);
-    }
-
-    private void ReturnResult(MsgboxResult result)
-    {
-        var tcs = this.tcs;
-        this.tcs = null;
-        tcs?.TrySetResult(new(MsgboxName, result));
+        popup.Close();
+        tcs?.TrySetResult(response);
+        tcs = null;
     }
 
     public void Dispose()
     {
-        msgboxService.OnOpen -= HandleOpen;
-        popupService.OnBackdropClick -= HandleBackdropClick;
-        ReturnResult(MsgboxResult.None);
+        Close(Response.None);
+        tcs = null;
+    }
+    private void HandleClose(bool args)
+    {
+        if (args)
+        {
+            tcs?.TrySetResult(Response.Cancel);
+            tcs = null;
+        }
     }
 }

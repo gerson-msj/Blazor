@@ -1,22 +1,19 @@
 ﻿@page "/"
 @inject NavigationManager Nav
-@inject MsgboxService msgbox
-@inject PopupService popup
 
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<button type="button" class="btn btn-link" @onclick='() => Nav.NavigateTo("/livros")'>Livros</button>
+<button type="button" class="btn btn-info" @onclick='() => Nav.NavigateTo("/livros")'>Livros</button>
+<button type="button" class="btn btn-info" @onclick='() => Nav.NavigateTo("/series")'>Séries</button>
 
 <hr />
 
-<Msgbox MsgboxName="msgbox">
-    <p>Msgbox!</p>
-</Msgbox>
+<Msgbox @ref="msgbox" />
 
-<Popup PopupName="popup">
-    <p>Popup!</p>
+<Popup @ref="popup">
+    <p>Popup</p>
 </Popup>
 
 <button type="button" @onclick="HandleMsgbox">@labelMsgbox</button>
@@ -26,40 +23,25 @@
 
     private string labelMsgbox = "Abrir Msgbox";
     private string labelPopup = "Abrir Popup";
+    private Msgbox msgbox = null!;
+    private Popup popup = null!;
 
-    protected override void OnInitialized()
-    {
-        popup.OnClose += HandlePopupClose;
-    }
 
     private async Task HandleMsgbox()
     {
-        var result = await msgbox.Open(new()
+        var response = await msgbox.Open(new()
         {
-            Title = "E ai?",
-            Ok = "Blz!",
-            Cancel = "Nop!",
-            MsgboxName = "msgbox"
+            Title = "Mensagem",
+            Text = "Conteúdo *formatado*",
+            Ok = "Ok",
+            Cancel = "Cancel"
         });
-        labelMsgbox = $"Msgbox Result: {result.MsgboxResult.ToString()}";
+
+        labelMsgbox = $"Msgbox Result: {response}";
     }
+
     private void HandlePopup()
     {
-        popup.Open(new() { PopupName = "popup" });
-    }
-
-    private void HandlePopupClose(string popupName)
-    {
-        if (popupName == "popup")
-        {
-            labelPopup = $"Popup Closed: {popupName}";
-            InvokeAsync(StateHasChanged);
-        }
-
-    }
-
-    public void Dispose()
-    {
-        popup.OnClose -= HandlePopupClose;
+        popup.Open();
     }
 }

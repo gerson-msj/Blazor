@@ -33,11 +33,3 @@
     transform: translateY(6px) scale(0.98);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
-
-.titulo {
-    border-bottom: 1px solid gray;
-    text-align: center;
-    padding: 5px;
-    margin: 0 0 15px 0;
-    font-size: larger;
-}

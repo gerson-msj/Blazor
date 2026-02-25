@@ -1,0 +1,117 @@
+﻿@using Blazor.Server.Models
+@using System.ComponentModel.DataAnnotations
+
+<EditForm FormName="serie_form" Model="Model" OnValidSubmit="HandleSubmit">
+    <AntiforgeryToken />
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label">Série:</label>
+        <SelectComponent @bind-Value="Model.Serie" Itens="series" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Autor:</label>
+        <SelectComponent @bind-Value="Model.Autor" Itens="autores" />
+    </div>
+
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th scope="col">Livro</th>
+                <th scope="col">Ordem</th>
+                <th scope="col">Data de Conclusão</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var livro in Model.Livros)
+            {
+                <tr @key="livro.Key">
+                    <td>
+                        <InputText @bind-Value="livro.Titulo" />
+                    </td>
+                    <td>
+                        <InputNumber @bind-Value="livro.Ordem" />
+                    </td>
+                    <td>
+                        <InputDate Type="InputDateType.Month" @bind-Value="livro.DataConclusao" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger"
+                                @onclick="() => RemoverLivro(livro.Key)">Remover</button>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td colspan="4">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="AdicionarLivro">Adicionar
+                        Livro</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <ValidationSummary />
+    </EditForm>
+
+<Msgbox @ref="msgbox" />
+
+@code {
+    [Parameter, EditorRequired] public SerieModel Model { get; set; } = default!;
+    [Parameter] public EventCallback<SerieModel> ModelChanged { get; set; }
+    [Parameter] public EventCallback GoBack { get; set; }
+    private List<SelectItemModel> autores = [];
+    private List<SelectItemModel> series = [];
+    private BaseLivroModel livroModel = new();
+    private Msgbox msgbox = null!;
+
+
+    private void HandleSubmit()
+    {
+        throw new NotImplementedException();
+    }
+    private void AdicionarLivro()
+    {
+        int ordem = Model.Livros
+            .Where(l => !l.Excluido)
+            .Select(l => l.Ordem ?? 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        Model.Livros.Add(new()
+        {
+            Ordem = ordem + 1
+        });
+    }
+
+    private async Task RemoverLivro(Guid key)
+    {
+
+        var msgboxResult = await msgbox.Open(new()
+        {
+            Title = "Remover",
+            Text = "Deseja realmente *remover* este livro?",
+            Ok = "Sim",
+            Cancel = "Não"
+        });
+
+        if (msgboxResult == Msgbox.Response.Cancel)
+            return;
+
+        var livro = Model.Livros.Single(l => l.Key == key);
+        var ordem = livro.Ordem ?? 0;
+        livro.Excluido = true;
+
+        Model.Livros
+            .Where(l => !l.Excluido && l.Ordem.HasValue && l.Ordem > ordem)
+            .ToList()
+            .ForEach(l => l.Ordem = l.Ordem ?? 0 + 1);
+
+        if (livro.Id == 0)
+        {
+            Model.Livros.Remove(livro);
+        }
+    }
+}

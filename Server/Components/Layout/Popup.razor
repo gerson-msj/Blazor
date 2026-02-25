@@ -1,70 +1,59 @@
-@using Blazor.Server.Models
-@using Microsoft.AspNetCore.Server.HttpSys
-@using Microsoft.AspNetCore.SignalR.Protocol
-@inject PopupService service
-@implements IDisposable
+﻿@using System.IO.IsolatedStorage
 
-<div class="backdrop" @onclick="HandleBackdropClick" style="@backdropStyle">
+<div class="backdrop" @onclick="CloseByBackdrop" style="@backdropStyle">
     <div class="box" style="@boxStyle" @onclick:stopPropagation="true">
         @ChildContent
     </div>
 </div>
 
 @code {
+    public class Request
+    {
+        public int Width { get; set; } = 400;
+        public bool DisableBackdrop { get; set; }
+    }
 
-    [Parameter] public string PopupName { get; set; } = "default";
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    private PopupRequestModel request = new();
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback<bool> OnClose { get; set; }
+    private Request request = new();
     private bool isOpen;
 
     private string backdropStyle =>
-        $"{(request.DisableBackdrop ? "" : "cursor: pointer;")} {(isOpen
-                ? "opacity: 1; visibility: visible; pointer-events: auto;"
-                : "opacity: 0; visibility: hidden; pointer-events: none;")}";
+            $"{(request.DisableBackdrop ? "" : "cursor: pointer;")} {(isOpen
+                    ? "opacity: 1; visibility: visible; pointer-events: auto;"
+                    : "opacity: 0; visibility: hidden; pointer-events: none;")}";
     private string boxStyle =>
         $"width: {request.Width}px; {(isOpen
             ? "opacity: 1; transform: translateY(0) scale(1);"
             : "opacity: 0; transform: translateY(6px) scale(0.98);")}";
 
-    protected override void OnInitialized()
+    public void Open() => Open(new());
+    public void Open(Request model)
     {
-        base.OnInitialized();
-        service.OnOpen += HandleOpen;
-        service.OnClose += HandleClose;
+        this.request = model;
+        isOpen = true;
+        InvokeAsync(StateHasChanged);
     }
 
-    private void HandleOpen(PopupRequestModel request)
+    public void Close() => Close(false);
+
+    private async Task CloseByBackdrop()
     {
-        if (request.PopupName == PopupName)
+        if (!request!.DisableBackdrop)
         {
-            this.request.Width = request.Width;
-            this.request.DisableBackdrop = request.DisableBackdrop;
-            isOpen = true;
-            InvokeAsync(StateHasChanged);
+            Close(true);
         }
     }
 
-    private void HandleClose(string popupName)
+    private void Close(bool byBackdrop)
     {
-        if (popupName == PopupName)
+        if (isOpen)
         {
             isOpen = false;
             InvokeAsync(StateHasChanged);
+            if (OnClose.HasDelegate)
+                OnClose.InvokeAsync(byBackdrop);
         }
-    }
 
-    private async Task HandleBackdropClick()
-    {
-        if (!request.DisableBackdrop && isOpen)
-        {
-            service.Close(isBackdropClick: true, popupName: PopupName);
-        }
-    }
-
-    public void Dispose()
-    {
-        service.OnOpen -= HandleOpen;
-        service.OnClose -= HandleClose;
     }
 }

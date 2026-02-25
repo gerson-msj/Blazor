@@ -1,11 +1,12 @@
 @page "/livros/edit/{id:int}"
 @inject LivroService service
-@inject MsgboxService msgbox
 @inject NavigationManager nav
+@inject ILogger<LivroEdit> log
 
 @rendermode InteractiveServer
 
 @using Blazor.Core.Domain.Dto
+@using Blazor.Core.Domain.Entity
 @using Blazor.Core.Service
 @using Blazor.Server.Components.Shared
 @using Blazor.Server.Models
@@ -14,28 +15,28 @@
 
 <h2>Editar Livro</h2>
 
-@if (livro is null)
+@if (model is null)
 {
     <p>Aguarde...</p>
 }
 else
 {
-    <LivroFormComponent @bind-Livro="livro" GoBack="HandleGoBack" />
+    <LivroFormComponent @bind-Livro="model" @bind-Livro:after="HandleSave" GoBack="HandleGoBack" />
 }
 
-<Msgbox MsgboxName="@msgboxName" />
+<Msgbox @ref="msgbox" />
 
 @code {
     [Parameter] public int Id { get; set; }
 
-    private const string msgboxName = "livro_edit";
-    private LivroModel? livro;
+    private LivroModel? model;
     private bool livroNaoLocalizado;
+    private Msgbox msgbox = null!;
 
     protected override async Task OnParametersSetAsync()
     {
-        livro = await ObterLivro();
-        livroNaoLocalizado = livro is null;
+        model = await ObterLivro();
+        livroNaoLocalizado = model is null;
         await base.OnParametersSetAsync();
     }
 
@@ -44,7 +45,7 @@ else
         if (livroNaoLocalizado)
         {
             livroNaoLocalizado = false;
-            await msgbox.Open(new() { Text = "Livro não localizado!", Ok = "Voltar", MsgboxName = msgboxName });
+            await msgbox.Open(new() { Text = "Livro não localizado!", Ok = "Voltar" });
             HandleGoBack();
         }
 
@@ -64,5 +65,29 @@ else
 
         LivroDto dto = new(entity);
         return new(dto);
+    }
+    private async Task HandleSave()
+    {
+        try
+        {
+            LivroDto dto = model!.ToDto();
+            LivroEntity entity = dto.ToNewEntity();
+            entity.Id = dto.Id;
+            var saved = await service.Update(entity);
+            if (saved)
+            {
+                await msgbox.Open(new() { Text = "Livro atualizado com sucesso.", Ok = "Ok" });
+                HandleGoBack();
+            }
+            else
+            {
+                await msgbox.Open(new() { Text = "Livro inexistente!", Ok = "Ok" });
+            }
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Falha ao atualizar um livro");
+            await msgbox.Open(new() { Text = "Atualização não realizada!", Ok = "Ok" });
+        }
     }
 }

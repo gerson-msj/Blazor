@@ -2,7 +2,6 @@
 @inject ILogger<LivroAdd> logger
 @inject LivroService service
 @inject NavigationManager nav
-@inject MsgboxService msgbox
 
 @rendermode InteractiveServer
 
@@ -17,11 +16,12 @@
 <hr />
 
 <LivroFormComponent @bind-Livro="livro" @bind-Livro:after="HandleSubmit" GoBack="HandleGoBack" />
-<Msgbox />
+<Msgbox @ref="msgbox" />
 
 @code {
 
     private LivroModel livro { get; set; } = null!;
+    private Msgbox msgbox = null!;
 
     protected override void OnInitialized()
     {

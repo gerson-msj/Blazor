@@ -1,0 +1,16 @@
+﻿@page "/series"
+@inject NavigationManager nav
+
+@rendermode InteractiveServer
+
+<PageTitle>Séries</PageTitle>
+
+<h2>Séries</h2>
+
+<hr />
+
+<button type="button" class="btn btn-primary" @onclick='() => nav.NavigateTo("/series/add")'>Adicionar Série</button>
+
+@code {
+
+}
