@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace Blazor.Server.Models;
@@ -17,6 +16,6 @@ public class BaseLivroModel : IValidatableObject
     {
         var valido = !Excluido && Ordem.HasValue && !string.IsNullOrWhiteSpace(Titulo);
         if (!valido)
-            yield return new($"O título do livro {Ordem} não foi informado.", [nameof(Titulo)]);
+            yield return new($"O título do livro {Ordem} não foi informado.", [$"{nameof(BaseLivroModel)}.{nameof(Titulo)}"]);
     }
 }

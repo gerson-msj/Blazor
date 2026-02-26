@@ -21,7 +21,9 @@
 
     private void FieldChanged(object? sender, FieldChangedEventArgs e)
     {
-        ValidateForm(e.FieldIdentifier);
+        // não usa e.FieldIdentifier pois existem regras cruzadas entre campos.
+        // Então, ao alterar um campo, os demais devem ser revalidados.
+        ValidateForm();
     }
 
     private void ValidateForm(FieldIdentifier? fieldIdentifier = null)

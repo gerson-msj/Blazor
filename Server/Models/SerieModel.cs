@@ -10,6 +10,8 @@ public class SerieModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+
+
         if (Serie is null)
             yield return new("Informe o nome da série.", [nameof(Serie)]);
 
@@ -18,42 +20,69 @@ public class SerieModel : IValidatableObject
 
         int qtdLivrosAtivos = Livros.Count(l => !l.Excluido);
         if (qtdLivrosAtivos < 2)
+        {
             yield return new("Uma série deve conter ao menos 2 livros.", [nameof(Livros)]);
-
-        bool ordemCorreta = true;
-        for (int i = 1; i <= qtdLivrosAtivos; i++)
-        {
-            int qtd = Livros.Count(l => l.Ordem == i && !l.Excluido);
-            if (qtd != 1)
-                ordemCorreta = false;
+            yield break;
         }
 
-        if (!ordemCorreta)
+        List<Tuple<int, BaseLivroModel>> livrosIndexados = [];
+
+        if (Livros.Any(l => string.IsNullOrWhiteSpace(l.Titulo) && !l.Ordem.HasValue && !l.Excluido))
         {
-            yield return new("A ordem de livros informada está incorreta.", [nameof(Livros)]);
+            yield return new("Existe um ou mais livros sem título e ordenação.", [nameof(Livros)]);
+            yield break;
         }
-        else
+
+        bool stopValidation = false;
+        for (int i = 0; i < Livros.Count; i++)
         {
-            for (int i = 0; i < Livros.Count; i++)
+            var livro = Livros[i];
+
+            if (livro.Excluido)
+                continue;
+
+            livrosIndexados.Add(Tuple.Create(i, livro));
+
+            var possuiTitulo = !string.IsNullOrWhiteSpace(livro.Titulo);
+            var possuiOrdem = livro.Ordem.HasValue;
+            var ordemInvalida = possuiOrdem && (livro.Ordem < 1 || livro.Ordem > 99);
+            var memberNameTitulo = $"{nameof(Livros)};{i};{nameof(BaseLivroModel.Titulo)}";
+            var memberNameOrdem = $"{nameof(Livros)};{i};{nameof(BaseLivroModel.Ordem)}";
+
+            if (!possuiTitulo && possuiOrdem)
             {
-                var l = Livros[i];
-                var valido = !l.Excluido && l.Ordem.HasValue && !string.IsNullOrWhiteSpace(l.Titulo);
-                if (!valido)
+                yield return new($"O título do livro {livro.Ordem} não foi informado.", [memberNameTitulo]);
+                stopValidation = true;
+            }
+
+            if (!possuiOrdem && possuiTitulo)
+            {
+                yield return new($"A ordem do livro {livro.Titulo} não foi informada.", [memberNameOrdem]);
+                stopValidation = true;
+            }
+
+            if (possuiTitulo && ordemInvalida)
+            {
+                yield return new($"A ordem do livro {livro.Titulo} é inválida.", [memberNameOrdem]);
+                stopValidation = true;
+            }
+        }
+
+
+        if (!stopValidation)
+        {
+            var livrosOrdenados = livrosIndexados.OrderBy(i => i.Item2.Ordem).ToList();
+            for (int i = 0; i < livrosOrdenados.Count; i++)
+            {
+                var indice = livrosOrdenados[i].Item1;
+                var livro = livrosOrdenados[i].Item2;
+
+                if (livro.Ordem != i + 1)
                 {
-                    var memberName = $"{nameof(Livros)};{i};{nameof(BaseLivroModel.Titulo)}";
-                    yield return new($"O título do livro {l.Ordem} não foi informado.", [memberName]);
+                    var memberNameOrdem = $"{nameof(Livros)};{indice};{nameof(BaseLivroModel.Ordem)}";
+                    yield return new($"A ordem {livro.Ordem} do livro {livro.Titulo} é inválida, deveria ser {i + 1}.", [memberNameOrdem]);
                 }
             }
-            // var livrosInvalidos = Livros.Where(l =>
-            //     !l.Excluido
-            //     && l.Ordem.HasValue
-            //     && string.IsNullOrWhiteSpace(l.Titulo));
-
-            // foreach (var livroInvalido in livrosInvalidos)
-            //     yield return new($"O título do livro {livroInvalido.Ordem} não foi informado.", [nameof(Livros)]);
         }
-
-
-
     }
 }
