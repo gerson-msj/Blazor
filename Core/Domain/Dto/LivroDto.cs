@@ -7,11 +7,12 @@ public class LivroDto
 {
     public int Id { get; set; }
     public string Titulo { get; set; } = string.Empty;
-    public AutorDto Autor { get; set; } = null!;
+    public AutorDto? Autor { get; set; }
     public SerieDto? Serie { get; set; }
     public int? Ordem { get; set; }
     public DateOnly? DataConclusao { get; set; }
     public string? Comentarios { get; set; }
+    public bool Excluido { get; set; }
 
     public LivroDto() { }
 
@@ -19,7 +20,7 @@ public class LivroDto
     {
         Id = entity.Id;
         Titulo = entity.Titulo;
-        Autor = new(entity.Autor);
+        Autor = entity.Autor is not null ? new(entity.Autor) : null;
 
         if (entity.Serie is not null)
             Serie = new(entity.Serie);
@@ -29,17 +30,25 @@ public class LivroDto
         Comentarios = entity.Comentarios;
     }
 
-    public void ApplyToEntity(LivroEntity entity)
+    public void ApplyToEntity(LivroEntity entity, bool applyId = false)
     {
+        if (applyId) entity.Id = entity.Id;
+
         entity.Titulo = Titulo;
 
-        entity.Autor ??= new AutorEntity();
-        entity.Autor.Id = Autor.Id;
-        entity.Autor.Nome = Autor.Nome;
+        if (Autor is null)
+        {
+            entity.Autor = default;
+        }
+        else
+        {
+            entity.Autor ??= new();
+            Autor.ApplyToEntity(entity.Autor);
+        }
 
         if (Serie is null)
         {
-            entity.Serie = null;
+            entity.Serie = default;
         }
         else
         {

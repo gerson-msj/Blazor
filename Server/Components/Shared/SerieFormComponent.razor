@@ -70,17 +70,6 @@
     private BaseLivroModel livroModel = new();
     private Msgbox msgbox = null!;
 
-    @* private EditContext editContext = default!; *@
-
-    @* protected override void OnParametersSet()
-    {
-        if (editContext is not null && ReferenceEquals(editContext.Model, Model))
-            return;
-
-        editContext = new(Model);
-        editContext.SetFieldCssClassProvider(new SerieFieldCssClassProvider());
-    } *@
-
     private Task HandleSubmit()
     {
         return ModelChanged.InvokeAsync(Model);

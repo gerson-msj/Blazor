@@ -26,7 +26,7 @@
         {
             <tr @onclick='() => nav.NavigateTo($"/livros/edit/{livro.Id}")'">
                 <td>@livro.Titulo</td>
-                <td>@livro.Autor.Nome</td>
+                <td>@(livro.Autor?.Nome ?? "")</td>
                 <td>@(livro.DataConclusao?.ToString("MMMM/yyyy") ?? "")</td>
             </tr>
         }

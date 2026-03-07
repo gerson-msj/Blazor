@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Blazor.Core.Domain.Dto;
 
 namespace Blazor.Server.Models;
 
@@ -11,6 +12,29 @@ public class BaseLivroModel : IValidatableObject
     public DateOnly? DataConclusao { get; set; }
     public string? Comentarios { get; set; }
     public int? Ordem { get; set; }
+
+    public BaseLivroModel() { }
+    public BaseLivroModel(LivroDto livro)
+    {
+        Id = livro.Id;
+        Titulo = livro.Titulo;
+        DataConclusao = livro.DataConclusao;
+        Comentarios = livro.Comentarios;
+        Excluido = livro.Excluido;
+    }
+
+    public LivroDto ToDto()
+    {
+        return new()
+        {
+            Id = Id,
+            Titulo = Titulo,
+            DataConclusao = DataConclusao,
+            Comentarios = Comentarios,
+            Ordem = Ordem,
+            Excluido = Excluido
+        };
+    }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

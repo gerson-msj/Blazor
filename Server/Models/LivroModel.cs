@@ -8,28 +8,21 @@ public class LivroModel : BaseLivroModel
     [Required(ErrorMessage = "Informe o {0}.")]
     public SelectItemModel? Autor { get; set; }
 
-    public LivroModel() { }
+    public LivroModel() : base() { }
 
-    public LivroModel(LivroDto dto)
+    public LivroModel(LivroDto dto) : base(dto)
     {
-        Id = dto.Id;
-        Titulo = dto.Titulo;
-        Autor = new(dto.Autor.Id, dto.Autor.Nome);
-        DataConclusao = dto.DataConclusao;
-        Comentarios = dto.Comentarios;
+        Autor = dto.Autor is not null ? new(dto.Autor.Id, dto.Autor.Nome) : default;
     }
 
-    public LivroDto ToDto() => new()
+    public new LivroDto ToDto()
     {
-        Id = Id,
-        Titulo = Titulo,
-        Autor = new AutorDto()
+        var dto = base.ToDto();
+        if (Autor is not null)
         {
-            Id = Autor?.Id ?? 0,
-            Nome = Autor?.Name ?? string.Empty
-        },
-        DataConclusao = DataConclusao,
-        Comentarios = Comentarios
-    };
+            dto.Autor = new() { Id = Autor.Id, Nome = Autor.Name };
+        }
 
+        return dto;
+    }
 }

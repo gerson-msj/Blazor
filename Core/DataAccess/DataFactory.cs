@@ -10,7 +10,8 @@ public sealed class DataFactory(IDbContextFactory<DataContext> contextFactory)
         return new(
             dataContext,
             livroRepository: new(dataContext),
-            autorRepository: new(dataContext)
+            autorRepository: new(dataContext),
+            serieRepository: new(dataContext)
         );
     }
 

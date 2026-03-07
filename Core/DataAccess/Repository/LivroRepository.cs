@@ -9,8 +9,8 @@ public class LivroRepository(DataContext dataContext) : BaseRepository<LivroEnti
     public Task<List<LivroEntity>> ObterLivros() =>
         DbSet
             .Include(e => e.Autor)
-            .Where(e => e.Serie == null)
-            .OrderBy(o => o.Autor.Nome)
+            .Where(e => e.Serie == null && e.Autor != null)
+            .OrderBy(o => o.Autor!.Nome)
             .ThenBy(o => o.Titulo)
             .ToListAsync();
 

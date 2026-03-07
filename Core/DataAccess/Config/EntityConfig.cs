@@ -23,12 +23,12 @@ public class LivroConfig : IEntityTypeConfiguration<LivroEntity>
             .HasOne(e => e.Autor)
                 .WithOne()
                 .HasForeignKey<LivroEntity>(idAutor)
-                .IsRequired();
+                .IsRequired(false);
 
         builder
             .HasOne(e => e.Serie)
-                .WithOne()
-                .HasForeignKey<LivroEntity>(idSerie)
+                .WithMany(e => e.Livros)
+                .HasForeignKey(idSerie)
                 .IsRequired(false);
 
         builder.HasIndex([titulo, idAutor, idSerie, ordem], ixLivroUnico).IsUnique();
@@ -49,12 +49,22 @@ public class AutorConfig : IEntityTypeConfiguration<AutorEntity>
 
 public class SerieConfig : IEntityTypeConfiguration<SerieEntity>
 {
+    private const string nome = "Nome";
+    private const string idAutor = "IdAutor";
+    private const string ixSerieUnica = "IX_Serie_Unique";
     public void Configure(EntityTypeBuilder<SerieEntity> builder)
     {
         builder.ToTable("Series");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
         builder.Property(e => e.Nome).IsRequired().HasMaxLength(50);
-        builder.HasIndex(e => e.Nome).IsUnique();
+
+        builder
+            .HasOne(e => e.Autor)
+            .WithOne()
+            .HasForeignKey<SerieEntity>(idAutor)
+            .IsRequired();
+
+        builder.HasIndex([nome, idAutor], ixSerieUnica).IsUnique();
     }
 }

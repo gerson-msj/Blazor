@@ -21,6 +21,7 @@ public static class DependencyInjection
         return services
             .AddScoped<DataFactory>()
             .AddScoped<LivroService>()
-            .AddScoped<AutorService>();
+            .AddScoped<AutorService>()
+            .AddScoped<SerieService>();
     }
 }

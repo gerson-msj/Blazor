@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Blazor.Core.Domain.Dto;
 
 namespace Blazor.Server.Models;
 
@@ -7,6 +8,27 @@ public class SerieModel : IValidatableObject
     public SelectItemModel? Serie { get; set; }
     public SelectItemModel? Autor { get; set; }
     public List<BaseLivroModel> Livros { get; set; } = [];
+
+    public SerieModel() { }
+
+    public SerieModel(SerieDto dto)
+    {
+        Serie = new(dto.Id, dto.Nome);
+        Autor = new(dto.Autor.Id, dto.Autor.Nome);
+        Livros = [.. dto.Livros.Select(livroDto => new BaseLivroModel(livroDto))];
+    }
+
+    public SerieDto ToDto() => new()
+    {
+        Id = Serie?.Id ?? 0,
+        Nome = Serie?.Name ?? string.Empty,
+        Autor = new()
+        {
+            Id = Autor?.Id ?? 0,
+            Nome = Autor?.Name ?? string.Empty
+        },
+        Livros = [.. Livros.Select(livro => livro.ToDto())]
+    };
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

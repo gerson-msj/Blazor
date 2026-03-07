@@ -1,6 +1,13 @@
-﻿@page "/series/add"
+﻿@using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
 @using Blazor.Server.Components.Shared
 @using Blazor.Server.Models
+@using Microsoft.EntityFrameworkCore.Diagnostics
+
+@page "/series/add"
+@inject ILogger<SerieAdd> logger
+@inject SerieService service
+@inject NavigationManager nav
 
 @rendermode InteractiveServer
 
@@ -9,8 +16,33 @@
 <h2>Nova Série</h2>
 <hr />
 
-<SerieFormComponent @bind-Model="model" />
+<SerieFormComponent @bind-Model="model" @bind-Model:after="Save" GoBack="Back" />
+
+<Msgbox @ref="msgbox" />
 
 @code {
     private SerieModel model = new();
+    private Msgbox msgbox = default!;
+
+    private async Task Save()
+    {
+        var dto = model.ToDto();
+        try
+        {
+            await service.Create(dto);
+            await msgbox.Open(new() { Text = "Gravação realizada com sucesso.", Ok = "Ok" });
+            Back();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha na gravação da série.");
+            await msgbox.Open(new() { Text = "Gravação não realizada!", Ok = "Ok" });
+        }
+    }
+
+    private void Back()
+    {
+        model = new();
+        nav.NavigateTo("/series");
+    }
 }

@@ -11,4 +11,17 @@ public class AutorDto : ListaDto
         Id = entity.Id;
         Nome = entity.Nome;
     }
+
+    public void ApplyToEntity(AutorEntity entity)
+    {
+        entity.Id = Id;
+        entity.Nome = Nome;
+    }
+
+    public AutorEntity ToNewEntity()
+    {
+        AutorEntity entity = new();
+        ApplyToEntity(entity);
+        return entity;
+    }
 }
