@@ -20,6 +20,7 @@ public class BaseLivroModel : IValidatableObject
         Titulo = livro.Titulo;
         DataConclusao = livro.DataConclusao;
         Comentarios = livro.Comentarios;
+        Ordem = livro.Ordem;
         Excluido = livro.Excluido;
     }
 

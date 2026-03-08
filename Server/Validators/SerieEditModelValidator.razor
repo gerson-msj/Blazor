@@ -1,0 +1,72 @@
+@using Blazor.Core.Domain.Dto
+@using Blazor.Server.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+@implements IDisposable
+
+@code {
+
+    [CascadingParameter, EditorRequired]
+    private EditContext editContext { get; set; } = default!;
+    private ValidationMessageStore messages = default!;
+    private FieldIdentifier? field = null;
+    private SerieDto instance = default!;
+
+    protected override void OnInitialized()
+    {
+        messages = new(editContext);
+        editContext.OnValidationRequested += ValidationRequested;
+        editContext.OnFieldChanged += FieldChanged;
+        base.OnInitialized();
+    }
+
+    private void ValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        if (editContext.Model is SerieDto serieModel)
+        {
+            messages.Clear();
+            ValidateObject(serieModel);
+
+            foreach (var livroModel in serieModel.Livros)
+                ValidateObject(livroModel);
+
+            editContext.NotifyValidationStateChanged();
+        }
+    }
+
+    private void FieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        var model = e.FieldIdentifier.Model;
+        var fieldName = e.FieldIdentifier.FieldName;
+        FieldIdentifier identifier = new(model, fieldName);
+        messages.Clear(identifier);
+        ValidateObject(model, identifier);
+
+        editContext.NotifyValidationStateChanged();
+    }
+
+    private void ValidateObject(object model, FieldIdentifier? identifier = null)
+    {
+        ICollection<ValidationResult> results = [];
+        ValidationContext ctx = new(model);
+        Validator.TryValidateObject(model, ctx, results, true);
+        foreach (var result in results.Where(r => !string.IsNullOrWhiteSpace(r.ErrorMessage) && r.MemberNames.Any()))
+        {
+            foreach (var memberName in result.MemberNames)
+            {
+                if (identifier is not null && memberName != identifier.Value.FieldName)
+                    continue;
+
+                FieldIdentifier currentIdentifier = identifier ?? new(model, memberName);
+                messages.Add(currentIdentifier, result.ErrorMessage!);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        editContext.OnValidationRequested -= ValidationRequested;
+        editContext.OnFieldChanged -= FieldChanged;
+    }
+}

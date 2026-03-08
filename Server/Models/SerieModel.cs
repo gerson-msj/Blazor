@@ -5,6 +5,8 @@ namespace Blazor.Server.Models;
 
 public class SerieModel : IValidatableObject
 {
+    public int Id { get; set; }
+    public string Nome { get; set; } = default!;
     public SelectItemModel? Serie { get; set; }
     public SelectItemModel? Autor { get; set; }
     public List<BaseLivroModel> Livros { get; set; } = [];
@@ -14,14 +16,15 @@ public class SerieModel : IValidatableObject
     public SerieModel(SerieDto dto)
     {
         Serie = new(dto.Id, dto.Nome);
+
         Autor = new(dto.Autor.Id, dto.Autor.Nome);
         Livros = [.. dto.Livros.Select(livroDto => new BaseLivroModel(livroDto))];
     }
 
     public SerieDto ToDto() => new()
     {
-        Id = Serie?.Id ?? 0,
-        Nome = Serie?.Name ?? string.Empty,
+        Id = Serie?.Id ?? Id,
+        Nome = Serie?.Name ?? Nome,
         Autor = new()
         {
             Id = Autor?.Id ?? 0,

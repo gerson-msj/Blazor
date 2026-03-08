@@ -1,5 +1,10 @@
-﻿@page "/series"
+﻿@using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
+@using Blazor.Server.Models
+
+@page "/series"
 @inject NavigationManager nav
+@inject SerieService service
 
 @rendermode InteractiveServer
 
@@ -11,6 +16,69 @@
 
 <button type="button" class="btn btn-primary" @onclick='() => nav.NavigateTo("/series/add")'>Adicionar Série</button>
 
-@code {
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Série</th>
+            <th>Autor</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (series.Count == 0)
+        {
+            <tr>
+                <td colspan="2">Não existem séries cadastradas</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var serie in series)
+            {
+                <tr @onclick="() => Edit(serie.Id)" class="tr-hover">
+                    <td>@serie.Nome</td>
+                    <td>@serie.Autor.Nome</td>
+                </tr>
+                <tr @onclick="() => Edit(serie.Id)">
+                    <td colspan="3">
+                        <table class="table table-sm mt-0 sub-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Ordem</th>
+                                    <th scope="col">Livro</th>
+                                    <th scope="col">Data de Conclusão</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var livro in serie.Livros)
+                                {
+                                    <tr>
+                                        <td>@livro.Ordem</td>
+                                        <td>@livro.Titulo</td>
+                                        <td>@(livro.DataConclusao?.ToString("MMMM/yyyy") ?? "")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
 
+                </tr>
+
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<SerieDto> series = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (!RendererInfo.IsInteractive) return;
+        series = await service.Listar();
+    }
+    private void Edit(int id)
+    {
+        nav.NavigateTo($"/series/edit/{id}");
+    }
 }

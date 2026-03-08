@@ -1,0 +1,82 @@
+﻿@page "/series/edit/{id:int}"
+@using Blazor.Core.Domain.Dto
+@using Blazor.Core.Service
+@using Blazor.Server.Components.Shared
+@using Blazor.Server.Models
+@using Blazor.Server.Validators
+
+@inject SerieService service
+@inject NavigationManager nav
+@inject ILogger<SerieEdit> log
+
+@rendermode InteractiveServer
+
+<PageTitle>Editar Série</PageTitle>
+
+@if (model is null)
+{
+    <p>Aguarde...</p>
+}
+else
+{
+    @* <SerieFormComponent @bind-Model="model" @bind-Model:after="Save" GoBack="Back" /> *@
+    <EditForm FormName="serie_edit" Model="model" OnValidSubmit="Save">
+        <AntiforgeryToken />
+        <SerieEditModelValidator />
+
+        <div class="mb-3">
+            <label class="form-label">Série:</label>
+            <InputText @bind-Value="model!.Nome" class="form-control" />
+        </div>
+
+        @foreach (var livro in model.Livros)
+        {
+            <div class="mb-3">
+                <InputText @bind-Value="livro.Titulo" class="form-control" />
+            </div>
+        }
+
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+
+        <ValidationSummary />
+    </EditForm>
+}
+
+<Msgbox @ref="msgbox" />
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [SupplyParameterFromForm] private SerieDto? model { get; set; }
+    private bool serieNaoLocalizada;
+    private Msgbox msgbox = default!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        model = await service.Obter(Id);
+        serieNaoLocalizada = model is null;
+        await base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (serieNaoLocalizada)
+        {
+            await msgbox.Open(new() { Text = "Série não localizada!", Ok = "Voltar" });
+            Back();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void Back()
+    {
+        nav.NavigateTo("/series");
+    }
+
+    private async Task Save(EditContext args)
+    {
+        await msgbox.Open(new() { Text = "Save!", Ok = "Ok" });
+    }
+}
